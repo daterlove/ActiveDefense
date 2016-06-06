@@ -40,4 +40,5 @@ public:
 	void ControlInit();
 	afx_msg void OnBnClickedClose();
 	afx_msg void OnBnClickedMin();
+	afx_msg void OnBnClickedLoadDrv();
 };

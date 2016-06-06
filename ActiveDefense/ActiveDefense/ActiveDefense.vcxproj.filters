@@ -39,6 +39,9 @@
     <ClInclude Include="TraButton.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="ScmDrvCtrl.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ActiveDefense.cpp">

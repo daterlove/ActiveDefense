@@ -6,6 +6,9 @@
 #include "ActiveDefense.h"
 #include "ActiveDefenseDlg.h"
 #include "afxdialogex.h"
+#include "ScmDrvCtrl.h"
+#include <Windows.h>
+#pragma comment(lib,"user32.lib")
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -36,6 +39,7 @@ BEGIN_MESSAGE_MAP(CActiveDefenseDlg, CDialogEx)
 	ON_WM_NCHITTEST()
 	ON_BN_CLICKED(IDC_CLOSE, &CActiveDefenseDlg::OnBnClickedClose)
 	ON_BN_CLICKED(IDC_MIN, &CActiveDefenseDlg::OnBnClickedMin)
+	ON_BN_CLICKED(IDC_LOAD_DRV, &CActiveDefenseDlg::OnBnClickedLoadDrv)
 END_MESSAGE_MAP()
 
 
@@ -161,14 +165,59 @@ void CActiveDefenseDlg::ControlInit()
 
 void CActiveDefenseDlg::OnBnClickedClose()
 {
-	if (IDYES == MessageBox(L"您真的要退出本程序吗？",L"系统提示", MB_ICONQUESTION | MB_YESNO))
+	EndDialog(0);//关闭窗体
+	/*if (IDYES == MessageBox(L"您真的要退出本程序吗？",L"系统提示", MB_ICONQUESTION | MB_YESNO))
 	{
 		EndDialog(0);//关闭窗体
-	}
+	}*/
 }
 
 
 void CActiveDefenseDlg::OnBnClickedMin()
 {
 	ShowWindow(SW_SHOWMINIMIZED);//最小化
+}
+
+void GetAppPath(char *szCurFile) //最后带斜杠
+{
+	GetModuleFileNameA(0, szCurFile, MAX_PATH);
+	for (SIZE_T i = strlen(szCurFile) - 1; i >= 0; i--)
+	{
+		if (szCurFile[i] == '\\')
+		{
+			szCurFile[i + 1] = '\0';
+			break;
+		}
+	}
+}
+void CActiveDefenseDlg::OnBnClickedLoadDrv()
+{
+	CString str;
+	BOOL b;
+	cDrvCtrl dc;
+	//设置驱动名称
+	char szSysFile[MAX_PATH] = { 0 };
+	char szSvcLnkName[] = "KrnlHW64";;
+	GetAppPath(szSysFile);
+	strcat(szSysFile, "KrnlHW64.sys");
+	//安装并启动驱动
+	b = dc.Install(szSysFile, szSvcLnkName, szSvcLnkName);
+	b = dc.Start();
+	b = dc.Stop();
+	b = dc.Remove();
+	/*
+	printf("LoadDriver=%d\n", b);
+	//“打开”驱动的符号链接
+	dc.Open("\\\\.\\KrnlHW64");
+	//使用控制码控制驱动（0x800：传入一个数字并返回一个数字）
+	DWORD x = 100, y = 0, z = 0;
+	dc.IoControl(0x800, &x, sizeof(x), &y, sizeof(y), &z);
+	printf("INPUT=%ld\nOUTPUT=%ld\nReturnBytesLength=%ld\n", x, y, z);
+	//使用控制码控制驱动（0x801：在DBGVIEW里显示HELLOWORLD）
+	dc.IoControl(0x801, 0, 0, 0, 0, 0);
+	//关闭符号链接句柄
+	CloseHandle(dc.m_hDriver);
+	//停止并卸载驱动
+	
+	*/
 }
