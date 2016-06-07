@@ -165,7 +165,8 @@ void CActiveDefenseDlg::ControlInit()
 
 void CActiveDefenseDlg::OnBnClickedClose()
 {
-	EndDialog(0);//关闭窗体
+	ExitProcess(0);
+	//EndDialog(0);//关闭窗体
 	/*if (IDYES == MessageBox(L"您真的要退出本程序吗？",L"系统提示", MB_ICONQUESTION | MB_YESNO))
 	{
 		EndDialog(0);//关闭窗体
@@ -197,27 +198,31 @@ void CActiveDefenseDlg::OnBnClickedLoadDrv()
 	cDrvCtrl dc;
 	//设置驱动名称
 	char szSysFile[MAX_PATH] = { 0 };
-	char szSvcLnkName[] = "KrnlHW64";;
+	char szSvcLnkName[] = "DefenseDriver";;
 	GetAppPath(szSysFile);
-	strcat(szSysFile, "KrnlHW64.sys");
+	strcat(szSysFile, "DefenseDriver.sys");
 	//安装并启动驱动
 	b = dc.Install(szSysFile, szSvcLnkName, szSvcLnkName);
 	b = dc.Start();
-	b = dc.Stop();
-	b = dc.Remove();
-	/*
-	printf("LoadDriver=%d\n", b);
+	
+
 	//“打开”驱动的符号链接
-	dc.Open("\\\\.\\KrnlHW64");
+	b = dc.Open("\\\\.\\DefenseDevice");
+	if (b==true)
+		MessageBox(L"打开符号链接成功");
+	
 	//使用控制码控制驱动（0x800：传入一个数字并返回一个数字）
 	DWORD x = 100, y = 0, z = 0;
-	dc.IoControl(0x800, &x, sizeof(x), &y, sizeof(y), &z);
-	printf("INPUT=%ld\nOUTPUT=%ld\nReturnBytesLength=%ld\n", x, y, z);
+	char *msg = { "Hello driver, this is a message from app.\r\n" };
+	dc.IoControl(0x91, msg, strlen(msg) + 1, &y, sizeof(y), &z);
+	MessageBox(L"here3");
+	/*printf("INPUT=%ld\nOUTPUT=%ld\nReturnBytesLength=%ld\n", x, y, z);
 	//使用控制码控制驱动（0x801：在DBGVIEW里显示HELLOWORLD）
-	dc.IoControl(0x801, 0, 0, 0, 0, 0);
+	dc.IoControl(0x801, 0, 0, 0, 0, 0);*/
 	//关闭符号链接句柄
-	CloseHandle(dc.m_hDriver);
+	//CloseHandle(dc.m_hDriver);
 	//停止并卸载驱动
-	
-	*/
+	////
+	b = dc.Stop();
+	b = dc.Remove();
 }
