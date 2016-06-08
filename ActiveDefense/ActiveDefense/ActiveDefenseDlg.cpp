@@ -214,8 +214,8 @@ void CActiveDefenseDlg::OnBnClickedLoadDrv()
 	//使用控制码控制驱动（0x800：传入一个数字并返回一个数字）
 	DWORD x = 100, y = 0, z = 0;
 	char *msg = { "Hello driver, this is a message from app.\r\n" };
-	dc.IoControl(0x91, msg, strlen(msg) + 1, &y, sizeof(y), &z);
-	MessageBox(L"here3");
+	dc.IoControl(0x911, msg, strlen(msg) + 1, &y, sizeof(y), &z);
+	MessageBox(L"here4");
 	/*printf("INPUT=%ld\nOUTPUT=%ld\nReturnBytesLength=%ld\n", x, y, z);
 	//使用控制码控制驱动（0x801：在DBGVIEW里显示HELLOWORLD）
 	dc.IoControl(0x801, 0, 0, 0, 0, 0);*/

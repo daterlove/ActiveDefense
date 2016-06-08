@@ -1,6 +1,20 @@
 #include "ntddk.h"
 #define CDO_DEVICE_NAME    L"\\Device\\DefenseDevice"
 #define CDO_SYB_NAME    L"\\??\\DefenseDevice"
+// 从应用层给驱动发送一个字符串。
+#define  IOCTL_SEND \
+	(ULONG)CTL_CODE( \
+	FILE_DEVICE_UNKNOWN, \
+	0x911,METHOD_BUFFERED, \
+	FILE_ANY_ACCESS)
+
+// 从驱动读取一个字符串
+#define  IOCTL_RECV\
+	(ULONG)CTL_CODE( \
+	FILE_DEVICE_UNKNOWN, \
+	0x912,METHOD_BUFFERED, \
+	FILE_ANY_ACCESS)
+
 PDEVICE_OBJECT g_pDevObj;//生成的设备对象指针
 
 NTSTATUS CreateDevice(PDRIVER_OBJECT pDriverObject)
@@ -42,19 +56,7 @@ VOID MyUnloadDriver(PDRIVER_OBJECT pDriverObject)
 	UnloadDevice();
 	KdPrint(("Unload"));
 }
-// 从应用层给驱动发送一个字符串。
-#define  IOCTL_SEND \
-	(ULONG)CTL_CODE( \
-	FILE_DEVICE_UNKNOWN, \
-	0x911,METHOD_BUFFERED, \
-	FILE_WRITE_DATA)
 
-// 从驱动读取一个字符串
-#define  IOCTL_RECV\
-	(ULONG)CTL_CODE( \
-	FILE_DEVICE_UNKNOWN, \
-	0x912,METHOD_BUFFERED, \
-	FILE_READ_DATA)
 
 
 NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分发函数
@@ -78,6 +80,10 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 		break;
 
 	}
+
+	Irp->IoStatus.Information = outlen;
+	Irp->IoStatus.Status = STATUS_SUCCESS;
+	IoCompleteRequest(Irp, IO_NO_INCREMENT);
 	return Status;
 }
 NTSTATUS MyCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
@@ -93,9 +99,8 @@ NTSTATUS MyClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
 	KdPrintEx((DPFLTR_DEFAULT_ID, DPFLTR_ERROR_LEVEL, "MyClose\r\n"));
 	Irp->IoStatus.Information = 0;
-
-	
 	Irp->IoStatus.Status = STATUS_SUCCESS;
+
 	IoCompleteRequest(Irp, IO_NO_INCREMENT);
 	return Irp->IoStatus.Status;
 }
@@ -113,8 +118,9 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath
 	else
 	{
 		KdPrint(("create Defense  device success"));
-	//	KdPrint(("Registry_path:%wZ", pRegistryPath));
 	}
+
+	//设置分发函数
 	pDriverObject->DriverUnload = MyUnloadDriver;
 	pDriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = MyDeviceControl;
 	pDriverObject->MajorFunction[IRP_MJ_CREATE] = MyCreate;
