@@ -27,5 +27,16 @@
     <ClCompile Include="DefenseDriver.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Process.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

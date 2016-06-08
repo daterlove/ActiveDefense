@@ -1,4 +1,4 @@
-#include "ntddk.h"
+#include "common.h"
 #define CDO_DEVICE_NAME    L"\\Device\\DefenseDevice"
 #define CDO_SYB_NAME    L"\\??\\DefenseDevice"
 // 从应用层给驱动发送一个字符串。
@@ -44,18 +44,14 @@ NTSTATUS CreateDevice(PDRIVER_OBJECT pDriverObject)
 	}
 	return STATUS_SUCCESS;
 }
-NTSTATUS UnloadDevice()
+VOID UnloadDevice()
 {
 	UNICODE_STRING cdo_syb = RTL_CONSTANT_STRING(CDO_SYB_NAME);
 	IoDeleteSymbolicLink(&cdo_syb);//删除符号链接
 	IoDeleteDevice(g_pDevObj);//删除对象
 
 }
-VOID MyUnloadDriver(PDRIVER_OBJECT pDriverObject)
-{
-	UnloadDevice();
-	KdPrint(("Unload"));
-}
+
 
 
 
@@ -104,6 +100,13 @@ NTSTATUS MyClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 	IoCompleteRequest(Irp, IO_NO_INCREMENT);
 	return Irp->IoStatus.Status;
 }
+
+VOID MyUnloadDriver(PDRIVER_OBJECT pDriverObject)
+{
+	UnloadDevice();//删除设备及符号链接
+	UnLoadProcessRoutine();//关闭进程回调
+	KdPrint(("Unload"));
+}
 NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath)
 {
 	KdPrint(("Driver load"));
@@ -126,6 +129,8 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath
 	pDriverObject->MajorFunction[IRP_MJ_CREATE] = MyCreate;
 	pDriverObject->MajorFunction[IRP_MJ_CLOSE] = MyClose;
 	pDriverObject->MajorFunction[IRP_MJ_CLEANUP] = MyClose;
+
+	CreateProcessRoutine();
 	return STATUS_SUCCESS;
 }
 

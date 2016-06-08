@@ -10,7 +10,6 @@ rd /s /q ActiveDefense\ActiveDefense\X64
 rd /s /q ActiveDefense\X64
 
 del /f /q /s DefenseDriver\*.sdf
-del /f /q /s /A h DefenseDriver\*.suo
 rd /s /q DefenseDriver\X64
 rd /s /q "DefenseDriver\DefenseDriver Package"
 rd /s /q DefenseDriver\DefenseDriver\X64
