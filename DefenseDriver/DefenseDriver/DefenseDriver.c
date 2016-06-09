@@ -44,7 +44,7 @@ NTSTATUS CreateDevice(PDRIVER_OBJECT pDriverObject)
 	}
 	return STATUS_SUCCESS;
 }
-VOID UnloadDevice()
+VOID UnloadDevice()//删除设备对象及符号链接
 {
 	UNICODE_STRING cdo_syb = RTL_CONSTANT_STRING(CDO_SYB_NAME);
 	IoDeleteSymbolicLink(&cdo_syb);//删除符号链接
@@ -63,16 +63,16 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 	ULONG inlen = irpsp->Parameters.DeviceIoControl.InputBufferLength;
 	ULONG outlen = irpsp->Parameters.DeviceIoControl.OutputBufferLength;
 	ULONG code = irpsp->Parameters.DeviceIoControl.IoControlCode;
-	KdPrint(("这里:%s", buffer));
-	KdPrint(("code:%x,IOCTL_SEND:%x", code, IOCTL_SEND));
+	//KdPrint(("这里:%s", buffer));
+	//KdPrint(("code:%x,IOCTL_SEND:%x", code, IOCTL_SEND));
 	switch (code)
 	{
 	case IOCTL_SEND:
-		KdPrint(("SendString:%s",buffer));
+		KdPrint(("IOCTL_SEND:%s",buffer));
 		break;
 	case IOCTL_RECV:
 		strcpy((char *)buffer, "just soso");
-		KdPrint(("Recv"));
+		KdPrint(("IOCTL_RECV"));
 		break;
 
 	}

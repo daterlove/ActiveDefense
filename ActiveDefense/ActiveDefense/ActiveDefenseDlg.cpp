@@ -7,7 +7,8 @@
 #include "ActiveDefenseDlg.h"
 #include "afxdialogex.h"
 #include "ScmDrvCtrl.h"
-#include <Windows.h>
+
+#include "DriverContrl.h"
 #pragma comment(lib,"user32.lib")
 
 #ifdef _DEBUG
@@ -40,6 +41,7 @@ BEGIN_MESSAGE_MAP(CActiveDefenseDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CLOSE, &CActiveDefenseDlg::OnBnClickedClose)
 	ON_BN_CLICKED(IDC_MIN, &CActiveDefenseDlg::OnBnClickedMin)
 	ON_BN_CLICKED(IDC_LOAD_DRV, &CActiveDefenseDlg::OnBnClickedLoadDrv)
+	ON_BN_CLICKED(IDC_UNLOAD_DRV, &CActiveDefenseDlg::OnBnClickedUnloadDrv)
 END_MESSAGE_MAP()
 
 
@@ -57,10 +59,6 @@ BOOL CActiveDefenseDlg::OnInitDialog()
 	ControlInit();//初始化 窗体 控件 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
-
-// 如果向对话框添加最小化按钮，则需要下面的代码
-//  来绘制该图标。  对于使用文档/视图模型的 MFC 应用程序，
-//  这将由框架自动完成。
 
 void CActiveDefenseDlg::OnPaint()
 {
@@ -191,38 +189,86 @@ void GetAppPath(char *szCurFile) //最后带斜杠
 		}
 	}
 }
+
+TCHAR szFullPath[] = { L"C:\\Users\\Administrator\\DeskTop\\DefenseDriver.sys" };
+TCHAR szTitle[MAX_PATH] = { L"DefenseDriver" };
+#define CWK_DEV_SYM L"\\\\.\\DefenseDevice"
+/*
+// 从应用层给驱动发送一个字符串。
+#define  CWK_DVC_SEND_STR \
+	(ULONG)CTL_CODE( \
+	FILE_DEVICE_UNKNOWN, \
+	0x911,METHOD_BUFFERED, \
+	FILE_WRITE_DATA)
+
+// 从驱动读取一个字符串
+#define  CWK_DVC_RECV_STR \
+	(ULONG)CTL_CODE( \
+	FILE_DEVICE_UNKNOWN, \
+	0x912,METHOD_BUFFERED, \
+	FILE_READ_DATA)
+	*/
 void CActiveDefenseDlg::OnBnClickedLoadDrv()
 {
-	CString str;
-	BOOL b;
-	cDrvCtrl dc;
-	//设置驱动名称
-	char szSysFile[MAX_PATH] = { 0 };
-	char szSvcLnkName[] = "DefenseDriver";;
-	GetAppPath(szSysFile);
-	strcat(szSysFile, "DefenseDriver.sys");
-	//安装并启动驱动
-	b = dc.Install(szSysFile, szSvcLnkName, szSvcLnkName);
-	b = dc.Start();
-	
-
-	//“打开”驱动的符号链接
-	b = dc.Open("\\\\.\\DefenseDevice");
-	if (b==true)
-		MessageBox(L"打开符号链接成功");
-	
-	//使用控制码控制驱动（0x800：传入一个数字并返回一个数字）
-	DWORD x = 100, y = 0, z = 0;
+	operaType(szFullPath, szTitle, 0);
+	operaType(szFullPath, szTitle, 1);
 	char *msg = { "Hello driver, this is a message from app.\r\n" };
-	dc.IoControl(0x911, msg, strlen(msg) + 1, &y, sizeof(y), &z);
-	MessageBox(L"here4");
-	/*printf("INPUT=%ld\nOUTPUT=%ld\nReturnBytesLength=%ld\n", x, y, z);
-	//使用控制码控制驱动（0x801：在DBGVIEW里显示HELLOWORLD）
-	dc.IoControl(0x801, 0, 0, 0, 0, 0);*/
+	char str[100];
+	ULONG ret_len;
+	HANDLE device = NULL;
+	//打开设备
+	device = CreateFile(CWK_DEV_SYM, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM, 0);
+	if (device == INVALID_HANDLE_VALUE)
+	{
+		MessageBox( L"设备打开错误");
+		return;
+	}
+
+
+	if (!DeviceIoControl(device, CTL_CODE_GEN(0x911), msg, strlen(msg) + 1, NULL, 0, &ret_len, 0))
+	{
+		MessageBox(L"发送错误");
+		return;
+	}
+	if (!DeviceIoControl(device, CTL_CODE_GEN(0x912), msg, strlen(msg) + 1, str, sizeof(str), &ret_len, 0))
+	{
+		MessageBox(L"接收错误");
+		return;
+	}
+	CloseHandle(device);
+	CString Str_Temp(str);
+	MessageBox(Str_Temp);
+}
+
+
+void CActiveDefenseDlg::OnBnClickedUnloadDrv()
+{/*
+	CString str;
+	str.Format(L"hwnd:%d", dc.m_hService);
+	MessageBox(str);
+
 	//关闭符号链接句柄
-	//CloseHandle(dc.m_hDriver);
-	//停止并卸载驱动
-	////
+	CloseHandle(dc.m_hDriver);
+	BOOL b;
 	b = dc.Stop();
+	if (b == true)
+		MessageBox(L"驱动停止成功");
+	else
+	{
+		str.Format(L"stop error:%d", dc.m_dwLastError);
+		MessageBox(str); 
+	}
 	b = dc.Remove();
+	if (b == true)
+		MessageBox(L"驱动卸载成功");
+	else
+	{
+		str.Format(L"remove error:%d", dc.m_dwLastError);
+		MessageBox(str);
+	}
+	*/
+
+	
+	operaType(szFullPath, szTitle, 2);
+	operaType(szFullPath, szTitle, 3);
 }

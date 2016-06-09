@@ -41,4 +41,5 @@ public:
 	afx_msg void OnBnClickedClose();
 	afx_msg void OnBnClickedMin();
 	afx_msg void OnBnClickedLoadDrv();
+	afx_msg void OnBnClickedUnloadDrv();
 };
