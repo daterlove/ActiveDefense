@@ -1,0 +1,1 @@
+void ShowInfoInDlg(CString str);

@@ -52,5 +52,9 @@
 #endif
 #endif
 
+#include "ScmDrvCtrl.h"
+#include "ThreadHandle.h"
+#include "DriverContrl.h"
+#include "ShowInfo.h"
 
-
+#define WM_SHOW_MSG WM_USER+100  

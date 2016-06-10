@@ -45,6 +45,12 @@
     <ClInclude Include="DriverContrl.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="ThreadHandle.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ShowInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ActiveDefense.cpp">
@@ -63,6 +69,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="DriverContrl.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadHandle.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ShowInfo.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

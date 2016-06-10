@@ -1,0 +1,1 @@
+unsigned int __stdcall ThreadHandle(VOID *pParam);

@@ -21,7 +21,8 @@ BOOL operaType(TCHAR *szFullPath, TCHAR *szName, int iType)
 	if (!shOSCM)
 	{
 		//SetWindowText(hwndStatus, TEXT("OpenSCManager时出错！"));
-		MessageBox(NULL, L"OpenSCManager时出错！", NULL, NULL);
+		//MessageBox(NULL, L"OpenSCManager时出错！", NULL, NULL);
+		ShowInfoInDlg(L"驱动操作：OpenSCManager 出错");
 		return FALSE;
 	}
 
@@ -32,14 +33,11 @@ BOOL operaType(TCHAR *szFullPath, TCHAR *szName, int iType)
 		{
 			dwErrorCode = GetLastError(); //获取错误信息
 			if (ERROR_INVALID_NAME == dwErrorCode)
-				//SetWindowText(hwndStatus, TEXT("服务名无效！"));
-				MessageBox(NULL, L"服务名无效！", NULL, NULL);
+				ShowInfoInDlg(L"驱动操作：服务名无效");
 			else if (ERROR_SERVICE_DOES_NOT_EXIST == dwErrorCode)
-				//SetWindowText(hwndStatus, TEXT("不存在此服务！"));
-				MessageBox(NULL, L"不存在此服务", NULL, NULL);
+				ShowInfoInDlg(L"驱动操作：不存在此服务");
 			else
-				//SetWindowText(hwndStatus, TEXT("OpenService时出错！"));
-				MessageBox(NULL, L"OpenService时出错！", NULL, NULL);
+				ShowInfoInDlg(L"驱动操作：OpenService时出错");
 
 			CloseServiceHandle(shOSCM); //关闭服务句柄
 			shOSCM = NULL;
@@ -58,31 +56,31 @@ BOOL operaType(TCHAR *szFullPath, TCHAR *szName, int iType)
 		if (!shCS)
 		{
 			if (ERROR_SERVICE_EXISTS == GetLastError()) //如果服务已经存在
-				MessageBox(NULL, L"指定的服务已经存在", NULL, NULL);
+				ShowInfoInDlg(L"驱动操作：指定的服务已经存在");
 			else
-				MessageBox(NULL, L"CreateService", NULL, NULL);
+				ShowInfoInDlg(L"驱动操作：CreateService失败");
 
 			bSuccess = FALSE;
 			break;
 		}
 		bSuccess = TRUE;
 
-		MessageBox(NULL, L"安装服务成功", NULL, NULL);
+		//MessageBox(NULL, L"安装服务成功", NULL, NULL);
+		ShowInfoInDlg(L"驱动操作：服务安装成功");
+
 		break;
 
 	case 1: //运行服务
 		if (StartService(shCS, 0, NULL))
-			//SetWindowText(hwndStatus, TEXT("运行指定服务成功！"));
-			MessageBox(NULL, L"运行指定服务成功", NULL, NULL);
+			ShowInfoInDlg(L"驱动操作：运行指定服务成功\r\n----------------------------------------");
 		else
 		{
 			dwErrorCode = GetLastError();
 			if (ERROR_SERVICE_ALREADY_RUNNING == dwErrorCode)
-				//SetWindowText(hwndStatus, TEXT("指定的服务已经运行！"));
-				MessageBox(NULL, L"指定的服务已经运行", NULL, NULL);
+				ShowInfoInDlg(L"驱动操作：指定的服务已经运行");
 			else
-				//SetWindowText(hwndStatus, TEXT("运行指定服务出错！"));
-				MessageBox(NULL, L"运行指定服务出错", NULL, NULL);
+				ShowInfoInDlg(L"驱动操作：运行指定服务出错");
+
 			bSuccess = FALSE;
 			break;
 		}
@@ -94,16 +92,16 @@ BOOL operaType(TCHAR *szFullPath, TCHAR *szName, int iType)
 		{
 			dwErrorCode = GetLastError();
 			if (ERROR_SERVICE_NOT_ACTIVE == dwErrorCode)
-				//SetWindowText(hwndStatus, TEXT("指定的服务并未启动！"));
-				MessageBox(NULL, L"指定的服务并未启动", NULL, NULL);
+				ShowInfoInDlg(L"驱动操作：指定的服务并未启动");
 			else
-				//SetWindowText(hwndStatus, TEXT("不能停止服务！"));
-				MessageBox(NULL, L"不能停止服务", NULL, NULL);
+				ShowInfoInDlg(L"驱动操作：不能停止服务");
+
 			bSuccess = FALSE;
 			break;
 		}
 		//SetWindowText(hwndStatus, TEXT("成功停止服务！"));
-		MessageBox(NULL, L"成功停止服务", NULL, NULL);
+		//MessageBox(NULL, L"成功停止服务", NULL, NULL);
+		ShowInfoInDlg(L"驱动操作：成功停止服务");
 		bSuccess = TRUE;
 		break;
 
@@ -111,12 +109,14 @@ BOOL operaType(TCHAR *szFullPath, TCHAR *szName, int iType)
 		if (!DeleteService(shCS))
 		{
 			//SetWindowText(hwndStatus, TEXT("不能移除服务！"));
-			MessageBox(NULL, L"不能移除服务", NULL, NULL);
+			//MessageBox(NULL, L"不能移除服务", NULL, NULL);
+			ShowInfoInDlg(L"驱动操作：不能移除服务");
 			bSuccess = FALSE;
 			break;
 		}
 		//SetWindowText(hwndStatus, TEXT("成功移除服务！"));
-		MessageBox(NULL, L"成功移除服务", NULL, NULL);
+		//MessageBox(NULL, L"成功移除服务", NULL, NULL);
+		ShowInfoInDlg(L"驱动操作：成功移除服务\r\n----------------------------------------");
 		bSuccess = TRUE;
 		break;
 
