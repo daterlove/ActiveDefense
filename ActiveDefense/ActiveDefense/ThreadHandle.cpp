@@ -20,7 +20,7 @@ unsigned int __stdcall ThreadHandle(VOID *pParam)
 		g_ThreadNum--;//线程总个数-1
 		return -1;
 	}
-	ShowInfoInDlg(L"线程消息：线程开启");
+	ShowInfoInDlg(L"线程消息：监控线程开启");
 	while (!g_isProcessOver)
 	{
 		Sleep(2000);
@@ -41,6 +41,6 @@ unsigned int __stdcall ThreadHandle(VOID *pParam)
 	CloseHandle(device);
 	g_ThreadNum--;//线程总个数-1
 	//MessageBox(NULL, L"线程退出", L"", NULL);
-	ShowInfoInDlg(L"线程消息：线程退出");
+	ShowInfoInDlg(L"线程消息：监控线程退出");
 	return 0;
 }

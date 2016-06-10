@@ -182,10 +182,11 @@ void CActiveDefenseDlg::OnBnClickedMin()
 	ShowWindow(SW_SHOWMINIMIZED);//最小化
 }
 
-void GetAppPath(char *szCurFile) //最后带斜杠
+void GetAppPath(TCHAR *szCurFile, TCHAR *szSysName) //返回本地目录下sys路径
 {
-	GetModuleFileNameA(0, szCurFile, MAX_PATH);
-	for (SIZE_T i = strlen(szCurFile) - 1; i >= 0; i--)
+	GetModuleFileNameW(0, szCurFile, MAX_PATH);
+	
+	for (SIZE_T i = wcslen(szCurFile) - 1; i >= 0; i--)
 	{
 		if (szCurFile[i] == '\\')
 		{
@@ -193,16 +194,20 @@ void GetAppPath(char *szCurFile) //最后带斜杠
 			break;
 		}
 	}
+	wcscat(szCurFile, szSysName);
+	
+	//MessageBox(NULL,szCurFile,NULL,NULL);
 }
 
-TCHAR szFullPath[] = { L"C:\\Users\\Administrator\\DeskTop\\DefenseDriver.sys" };
+
 TCHAR szTitle[MAX_PATH] = { L"DefenseDriver" };
 #define CWK_DEV_SYM L"\\\\.\\DefenseDevice"
 
 
 void CActiveDefenseDlg::OnBnClickedLoadDrv()
 {
-	
+	TCHAR szFullPath[256];
+	GetAppPath(szFullPath, L"DefenseDriver.sys");
 
 	operaType(szFullPath, szTitle, 0);
 	operaType(szFullPath, szTitle, 1);
@@ -244,6 +249,8 @@ void StartThread()
 }
 void CActiveDefenseDlg::OnBnClickedUnloadDrv()
 {
+	TCHAR szFullPath[256];
+	GetAppPath(szFullPath, L"DefenseDriver.sys");
 	g_isProcessOver = 1;//关闭线程
 	operaType(szFullPath, szTitle, 2);
 	operaType(szFullPath, szTitle, 3);
