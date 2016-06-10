@@ -1,8 +1,10 @@
 #include "common.h"
-BOOLEAN g_isProcessRoutine=0;
-
 NTKERNELAPI PCHAR PsGetProcessImageFileName(PEPROCESS Process);
 NTKERNELAPI NTSTATUS PsLookupProcessByProcessId(HANDLE ProcessId, PEPROCESS *Process);
+
+BOOLEAN g_isProcessRoutine=0;
+extern KEVENT g_kEvent;	//全局事件对象
+
 
 
 PCHAR GetProcessNameByProcessId(HANDLE ProcessId)
@@ -40,12 +42,17 @@ __in_opt  PPS_CREATE_NOTIFY_INFO CreateInfo
 			DbgPrint("禁止创建计算器进程！");
 			//CreateInfo->CreationStatus = STATUS_UNSUCCESSFUL;	//禁止创建进程
 			CreateInfo->CreationStatus = STATUS_ACCESS_DENIED;
+			//激活事件
+			KeSetEvent(&g_kEvent, IO_NO_INCREMENT, FALSE);
+
+		
 		}
 	}
 	else
 	{
 		DbgPrint("进程退出: %s", PsGetProcessImageFileName(Process));
 	}
+
 }
 VOID UnLoadProcessRoutine()
 {

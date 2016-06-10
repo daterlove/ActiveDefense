@@ -18,7 +18,7 @@
 
 extern bool g_isProcessOver;//指示程序是否要退出
 extern int g_ThreadNum;//记录线程个数
-
+HANDLE g_ThreadHandle;
 CActiveDefenseDlg::CActiveDefenseDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CActiveDefenseDlg::IDD, pParent)
 	, m_EDIT_STR(_T(""))
@@ -243,15 +243,37 @@ void CActiveDefenseDlg::OnBnClickedLoadDrv()
 
 void StartThread()
 {
-	HANDLE handle = (HANDLE)_beginthreadex(NULL, 0, ThreadHandle, NULL, 0, NULL);
+	 g_ThreadHandle = (HANDLE)_beginthreadex(NULL, 0, ThreadHandle, NULL, 0, NULL);
 	//WaitForSingleObject(handle, INFINITE); //等待线程结束
 	//CloseHandle(handle);
+}
+int SendDrvClose()
+{
+	HANDLE device = NULL;
+	ULONG ret_len;
+
+	//打开设备
+	device = CreateFile(CWK_DEV_SYM, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM, 0);
+	if (device == INVALID_HANDLE_VALUE)
+	{
+		ShowInfoInDlg(L"主线程：设备打开错误，线程退出");
+		return -1;
+	}
+	if (!DeviceIoControl(device, CTL_CODE_GEN(0x913), NULL, NULL, NULL, 0, &ret_len, 0))//发送
+	{
+		ShowInfoInDlg(L"线程消息：向驱动发送消息失败");
+	}
+
+	CloseHandle(device);
+	return 0;
 }
 void CActiveDefenseDlg::OnBnClickedUnloadDrv()
 {
 	TCHAR szFullPath[256];
 	GetAppPath(szFullPath, L"DefenseDriver.sys");
-	g_isProcessOver = 1;//关闭线程
+	g_isProcessOver = 1;//线程退出标志位
+	SendDrvClose();
+	
 	operaType(szFullPath, szTitle, 2);
 	operaType(szFullPath, szTitle, 3);
 }

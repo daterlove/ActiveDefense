@@ -15,8 +15,16 @@
 	0x912,METHOD_BUFFERED, \
 	FILE_ANY_ACCESS)
 
-PDEVICE_OBJECT g_pDevObj;//生成的设备对象指针
+// 应用层关闭信号
+#define  IOCTL_CLOSE\
+	(ULONG)CTL_CODE( \
+	FILE_DEVICE_UNKNOWN, \
+	0x913,METHOD_BUFFERED, \
+	FILE_ANY_ACCESS)
 
+PDEVICE_OBJECT g_pDevObj;//生成的设备对象指针
+KEVENT g_kEvent;	//全局事件对象
+;
 NTSTATUS CreateDevice(PDRIVER_OBJECT pDriverObject)
 {
 	NTSTATUS Status;
@@ -71,8 +79,15 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 		KdPrint(("IOCTL_SEND:%s",buffer));
 		break;
 	case IOCTL_RECV:
+		//等待信号  
+		KeWaitForSingleObject(&g_kEvent,Executive,KernelMode,FALSE,0);
 		strcpy((char *)buffer, "just soso");
 		KdPrint(("IOCTL_RECV"));
+		break;
+	case IOCTL_CLOSE:
+		KdPrint(("IOCTL_CLOSE"));
+		//激活事件
+		KeSetEvent(&g_kEvent, IO_NO_INCREMENT, FALSE);
 		break;
 
 	}
@@ -122,6 +137,8 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath
 	{
 		KdPrint(("create Defense  device success"));
 	}
+	//初始化全局事件,同步事件
+	KeInitializeEvent(&g_kEvent, SynchronizationEvent, FALSE);
 
 	//设置分发函数
 	pDriverObject->DriverUnload = MyUnloadDriver;
