@@ -56,5 +56,6 @@
 #include "ThreadHandle.h"
 #include "DriverContrl.h"
 #include "ShowInfo.h"
+#include "WarningDlg.h"
 
 #define WM_SHOW_MSG WM_USER+100  

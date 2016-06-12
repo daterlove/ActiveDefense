@@ -247,7 +247,7 @@ void StartThread()
 	//WaitForSingleObject(handle, INFINITE); //等待线程结束
 	//CloseHandle(handle);
 }
-int SendDrvClose()
+int SendDrvClose()//发送给设备CLOSE信号，激活线程，防止线程阻塞在内核层
 {
 	HANDLE device = NULL;
 	ULONG ret_len;
@@ -261,7 +261,7 @@ int SendDrvClose()
 	}
 	if (!DeviceIoControl(device, CTL_CODE_GEN(0x913), NULL, NULL, NULL, 0, &ret_len, 0))//发送
 	{
-		ShowInfoInDlg(L"线程消息：向驱动发送消息失败");
+		ShowInfoInDlg(L"主线程：向驱动发送消息失败");
 	}
 
 	CloseHandle(device);
@@ -288,7 +288,7 @@ void CActiveDefenseDlg::OnBnClickedStartThread()
 	}
 	else
 	{
-		MessageBox(L"只运行开启一个监控线程");
+		MessageBox(L"只允许开启一个监控线程");
 	}
 	
 }

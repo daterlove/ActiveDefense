@@ -1,5 +1,4 @@
 del /f /q /s ActiveDefense\*.sdf
-del /f /q /s /A h ActiveDefense\*.suo
 del /f /q /s ActiveDefense\ActiveDefense\*.aps
 rd /s /q ActiveDefense\ipch
 rd /s /q ActiveDefense\Release

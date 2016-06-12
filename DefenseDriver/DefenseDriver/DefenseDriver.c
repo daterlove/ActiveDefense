@@ -60,9 +60,6 @@ VOID UnloadDevice()//删除设备对象及符号链接
 
 }
 
-
-
-
 NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分发函数
 {
 	NTSTATUS Status = STATUS_SUCCESS;
@@ -75,14 +72,17 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 	//KdPrint(("code:%x,IOCTL_SEND:%x", code, IOCTL_SEND));
 	switch (code)
 	{
-	case IOCTL_SEND:
+	case IOCTL_SEND://应用发送信号
 		KdPrint(("IOCTL_SEND:%s",buffer));
+		KdPrint(("inlen:%d,outlen:%d", inlen, outlen));
 		break;
-	case IOCTL_RECV:
+	case IOCTL_RECV://应用读取信号
 		//等待信号  
 		KeWaitForSingleObject(&g_kEvent,Executive,KernelMode,FALSE,0);
 		strcpy((char *)buffer, "just soso");
+		
 		KdPrint(("IOCTL_RECV"));
+		KdPrint(("inlen:%d,outlen:%d", inlen, outlen));
 		break;
 	case IOCTL_CLOSE:
 		KdPrint(("IOCTL_CLOSE"));

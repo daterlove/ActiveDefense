@@ -2,9 +2,11 @@
 bool g_isProcessOver = 0;//指示程序是否要退出
 int g_ThreadNum = 0;//记录线程个数
 #define CWK_DEV_SYM L"\\\\.\\DefenseDevice"
-
+ 
 unsigned int __stdcall ThreadHandle(VOID *pParam)
 {
+	WarningDlg myDlg;
+	int nDlgRet;
 	
 	HANDLE device = NULL;
 	char *msg = { "Hello driver, this is a message from app.\r\n" };
@@ -23,13 +25,18 @@ unsigned int __stdcall ThreadHandle(VOID *pParam)
 	ShowInfoInDlg(L"线程消息：监控线程开启");
 	while (!g_isProcessOver)
 	{
-		Sleep(2000);
+
 		if (!DeviceIoControl(device, CTL_CODE_GEN(0x912), NULL, 0, str, sizeof(str), &ret_len, 0))//读取
 		{
 			ShowInfoInDlg(L"线程消息：从驱动读取消息失败");
 			break;
 		}
-
+		/*
+		CString temp;
+		temp.Format(L"ret_len:%d", ret_len);
+		ShowInfoInDlg(temp);
+		*/
+		nDlgRet = myDlg.DoModal();  //弹出警告窗体
 		if (!DeviceIoControl(device, CTL_CODE_GEN(0x911), msg, strlen(msg) + 1, NULL, 0, &ret_len, 0))//发送
 		{
 			ShowInfoInDlg(L"线程消息：向驱动发送消息失败");

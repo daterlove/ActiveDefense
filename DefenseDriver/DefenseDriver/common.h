@@ -3,4 +3,5 @@
 	
 	#include "ntddk.h"
 	#include "Process.h"
+	#include "EventList.h"
 #endif

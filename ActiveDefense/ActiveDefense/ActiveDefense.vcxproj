@@ -195,6 +195,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="ThreadHandle.h" />
     <ClInclude Include="TraButton.h" />
+    <ClInclude Include="WarningDlg.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ActiveDefense.cpp" />
@@ -210,6 +211,7 @@
     </ClCompile>
     <ClCompile Include="ThreadHandle.cpp" />
     <ClCompile Include="TraButton.cpp" />
+    <ClCompile Include="WarningDlg.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ActiveDefense.rc" />
@@ -220,6 +222,7 @@
   <ItemGroup>
     <Image Include="res\ActiveDefense.ico" />
     <Image Include="res\back.bmp" />
+    <Image Include="res\back1.bmp" />
     <Image Include="res\bitmap1.bmp" />
     <Image Include="res\BT_CLOSE.png" />
     <Image Include="res\BT_MIN.png" />

@@ -51,6 +51,9 @@
     <ClInclude Include="ShowInfo.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="WarningDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ActiveDefense.cpp">
@@ -75,6 +78,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ShowInfo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WarningDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -102,6 +108,9 @@
       <Filter>资源文件</Filter>
     </Image>
     <Image Include="res\BT_MIN.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\back1.bmp">
       <Filter>资源文件</Filter>
     </Image>
   </ItemGroup>
