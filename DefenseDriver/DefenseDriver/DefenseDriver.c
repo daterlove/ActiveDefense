@@ -24,7 +24,9 @@
 
 PDEVICE_OBJECT g_pDevObj;//生成的设备对象指针
 KEVENT g_kEvent;	//全局事件对象
-;
+extern LIST_ENTRY		my_list_head;
+extern INT g_isRefuse;//指示进程是否被放行
+
 NTSTATUS CreateDevice(PDRIVER_OBJECT pDriverObject)
 {
 	NTSTATUS Status;
@@ -70,29 +72,87 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 	ULONG code = irpsp->Parameters.DeviceIoControl.IoControlCode;
 	//KdPrint(("这里:%s", buffer));
 	//KdPrint(("code:%x,IOCTL_SEND:%x", code, IOCTL_SEND));
+
+	INT Close_Flag = 0;//驱动退出标志位
 	switch (code)
 	{
 	case IOCTL_SEND://应用发送信号
 		KdPrint(("IOCTL_SEND:%s",buffer));
 		KdPrint(("inlen:%d,outlen:%d", inlen, outlen));
+		PMY_EVENT pEvent=RemoveEventFromList();//从链表删除一个事件
+		KeSetEvent(pEvent->pProcessEvent, IO_NO_INCREMENT, FALSE);//激活事件,回调进程继续运行,处理程序是否运行
+		//int *p = buffer;
+
+		g_isRefuse = *(int *)(buffer);
+		//KdPrint(("g_isRefuse = *p:%d", *p));
+		ExFreePool(pEvent);//释放内存
+
+		Irp->IoStatus.Information = 0;//写入长度
 		break;
 	case IOCTL_RECV://应用读取信号
-		//等待信号  
-		KeWaitForSingleObject(&g_kEvent,Executive,KernelMode,FALSE,0);
-		strcpy((char *)buffer, "just soso");
+		/*
+		if (IsListEmpty(&my_list_head))
+		{
+			KdPrint(("链表为空"));
+		}
+		else
+		{
+			KdPrint(("链表bu为空"));
+
+		}*/
+		while (IsListEmpty(&my_list_head) && Close_Flag == 0)//链表为空且标志位为0
+		{
+			/*
+			if (Close_Flag == 0)
+			{
+				KdPrint(("Close_Flag == 0"));
+			}*/
+			KeWaitForSingleObject(&g_kEvent, Executive, KernelMode, FALSE, 0);//等待事件信号  
+		}
+		//KdPrint(("Close_flag:%d", Close_Flag));
+
+		if (Close_Flag == 0)//不是关闭信号
+		{
+			KdPrint(("(Close_Flag != 0)//不是关闭信号"));
+			/*if (IsListEmpty(&my_list_head))
+			{
+				KdPrint(("链表为空"));
+			}
+			else
+			{
+				KdPrint(("链表bu为空"));
+
+			}*/
+
+			PMY_EVENT pEvent = GetEvent();
+			RtlCopyMemory(buffer, &pEvent->nType, sizeof(int));//拷贝4个字节的类型值
+			
+			RtlCopyMemory((PVOID)((char *)buffer+4), &pEvent->nLength, sizeof(int));//拷贝4个字节字符串长度
+			RtlCopyMemory((PVOID)((char *)buffer + 8), pEvent->wStr, pEvent->nLength);//拷贝wchar字符串
+			KdPrint(("nType:%d,nLength:%d", pEvent->nType, pEvent->nLength));
+			Irp->IoStatus.Information = 8 + pEvent->nLength;//写入长度
+		}
+		else
+		{
+			KdPrint(("(Close_here"));
+			Irp->IoStatus.Information = 0;//写入长度为0
+		}
+		//strcpy((char *)buffer, "just soso");
 		
 		KdPrint(("IOCTL_RECV"));
-		KdPrint(("inlen:%d,outlen:%d", inlen, outlen));
+		//KdPrint(("inlen:%d,outlen:%d", inlen, outlen));
 		break;
 	case IOCTL_CLOSE:
 		KdPrint(("IOCTL_CLOSE"));
+		Close_Flag = 1;
 		//激活事件
 		KeSetEvent(&g_kEvent, IO_NO_INCREMENT, FALSE);
+		Irp->IoStatus.Information = 0;//写入长度
 		break;
 
 	}
 
-	Irp->IoStatus.Information = outlen;
+	
 	Irp->IoStatus.Status = STATUS_SUCCESS;
 	IoCompleteRequest(Irp, IO_NO_INCREMENT);
 	return Status;
@@ -139,6 +199,8 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath
 	}
 	//初始化全局事件,同步事件
 	KeInitializeEvent(&g_kEvent, SynchronizationEvent, FALSE);
+	//链表初始化
+	EventListInit();
 
 	//设置分发函数
 	pDriverObject->DriverUnload = MyUnloadDriver;
@@ -148,6 +210,26 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath
 	pDriverObject->MajorFunction[IRP_MJ_CLEANUP] = MyClose;
 
 	CreateProcessRoutine();
+	/*
+	PMY_EVENT pEvent = (PMY_EVENT)ExAllocatePoolWithTag(PagedPool, sizeof(MY_EVENT),112);//申请内存
+	if (pEvent == NULL)
+	{
+		KdPrint(("申请空间为空"));
+	}
+	else
+	{
+		KdPrint(("申请空间成功"));
+	}
+	pEvent->nType = 1;
+	pEvent->nLength = 123;
+	KdPrint(("Entry:nTtype:%d,nLen:%d", pEvent->nType, pEvent->nLength));
+	AddEventToList(pEvent);//加入链表
+	ShowList();
+	KdPrint(("------------"));
+	GetEvent();
+
+	RemoveEventFromList();
+	*/
 	return STATUS_SUCCESS;
 }
 

@@ -108,11 +108,11 @@ BOOL WarningDlg::OnInitDialog()
 
 void WarningDlg::OnBnClickedAccepct()
 {
-	EndDialog(1);
+	EndDialog(0);
 }
 
 
 void WarningDlg::OnBnClickedRefuse()
 {
-	EndDialog(0);
+	EndDialog(1);
 }

@@ -7,7 +7,7 @@ LIST_ENTRY		my_list_head;
 KSPIN_LOCK	my_list_lock;
 
 
-void EventListInit()
+void EventListInit()//链表初始化
 {
 	InitializeListHead(&my_list_head);//初始化链表头
 	KeInitializeSpinLock(&my_list_lock);
@@ -29,6 +29,16 @@ PMY_EVENT RemoveEventFromList()//从链表头部删除,并返回删除的结构体
 	return pEvent;
 }
 
+PMY_EVENT GetEvent()
+{
+	PLIST_ENTRY pEntry = my_list_head.Flink;
+	PMY_EVENT pEvent;
+
+	pEvent = CONTAINING_RECORD(pEntry, MY_EVENT, list_enty);//从链表地址计算出MY_EVENT结构体地址
+	KdPrint(("GetEvent:%d", pEvent->nType));
+	return pEvent;
+}
+
 void ShowList()
 {
 	int i = 0;
@@ -40,22 +50,4 @@ void ShowList()
 	}
 }
 
-void add()
-{
-	NTSTATUS Status;
-	PMY_EVENT pEvent = (PMY_EVENT)ExAllocatePoolWithTag(PagedPool, sizeof(MY_EVENT), MEM_TAG);
-	if (pEvent == NULL)
-	{
-		return STATUS_UNSUCCESSFUL;
-	}
-
-
-	pEvent->nType = g_number++;
-	Status = AddEventToList(pEvent);
-	return Status;
-}
-void remove()
-{
-	RemoveEventFromList();
-}
 
