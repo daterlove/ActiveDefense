@@ -54,7 +54,7 @@
 
 #include "ScmDrvCtrl.h"
 #include "ThreadHandle.h"
-#include "DriverContrl.h"
+#include "DriverControl.h"
 #include "ShowInfo.h"
 #include "WarningDlg.h"
 

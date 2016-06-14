@@ -37,7 +37,7 @@ BOOL operaType(TCHAR *szFullPath, TCHAR *szName, int iType)
 			else if (ERROR_SERVICE_DOES_NOT_EXIST == dwErrorCode)
 				ShowInfoInDlg(L"驱动操作：不存在此服务");
 			else
-				ShowInfoInDlg(L"驱动操作：OpenService时出错");
+				ShowInfoInDlg(L"驱动操作：OpenService失败");
 
 			CloseServiceHandle(shOSCM); //关闭服务句柄
 			shOSCM = NULL;
@@ -58,7 +58,7 @@ BOOL operaType(TCHAR *szFullPath, TCHAR *szName, int iType)
 			if (ERROR_SERVICE_EXISTS == GetLastError()) //如果服务已经存在
 				ShowInfoInDlg(L"驱动操作：指定的服务已经存在");
 			else
-				ShowInfoInDlg(L"驱动操作：CreateService失败");
+				ShowInfoInDlg(L"驱动操作：创建服务 失败");
 
 			bSuccess = FALSE;
 			break;

@@ -6,7 +6,7 @@
 #include "WarningDlg.h"
 #include "afxdialogex.h"
 
-
+extern struct EventStrInfo g_EventStrInfo;
 // WarningDlg 对话框
 
 IMPLEMENT_DYNAMIC(WarningDlg, CDialogEx)
@@ -55,14 +55,43 @@ BOOL WarningDlg::OnEraseBkgnd(CDC* pDC)
 
 	/*输出标题 文字*/
 	CFont font;
-	font.CreatePointFont(125, L"微软雅黑");
+	font.CreatePointFont(120, L"微软雅黑");
 
 	CDC*pdc = GetDC();
 	pdc->SetBkMode(TRANSPARENT);
 	pdc->SelectObject(&font);
 	pdc->SetTextColor(RGB(255, 255, 255));
-	pdc->TextOutW(20, 7, L"违规事件");
+	//pdc->TextOutW(20, 7, L"违规事件");
 
+	//输出信息
+	pdc->TextOutW(20, 20, g_EventStrInfo.szCaption); 
+	pdc->TextOutW(20, 50, g_EventStrInfo.szType);
+	pdc->SetTextColor(RGB(0, 0, 200));
+	pdc->TextOutW(20, 97, g_EventStrInfo.szName);
+	pdc->SetTextColor(RGB(0, 0, 0));
+	pdc->TextOutW(20, 127, g_EventStrInfo.szDescribe);
+
+	int len = g_EventStrInfo.szPath.GetLength();
+	int line = 50;
+	if (len > line)
+	{
+		pdc->TextOutW(20, 157, g_EventStrInfo.szPath.Mid(0, line));
+		if (len > 2 * line)
+		{
+			pdc->TextOutW(20, 177, g_EventStrInfo.szPath.Mid(line, line-4)+L" ....");
+		}
+		else
+		{
+			pdc->TextOutW(20, 177, g_EventStrInfo.szPath.Mid(line, len - line));
+		}
+		
+	}
+	else
+	{
+		pdc->TextOutW(20, 157, g_EventStrInfo.szPath);
+	}
+	
+	
 	ReleaseDC(pdc);
 	/**/
 	return true;

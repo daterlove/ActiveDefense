@@ -42,9 +42,6 @@
     <ClInclude Include="ScmDrvCtrl.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DriverContrl.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="ThreadHandle.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -52,6 +49,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="WarningDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DriverControl.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -71,9 +71,6 @@
     <ClCompile Include="TraButton.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="DriverContrl.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="ThreadHandle.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -81,6 +78,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="WarningDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DriverControl.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
