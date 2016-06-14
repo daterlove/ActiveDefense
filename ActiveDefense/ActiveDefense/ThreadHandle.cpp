@@ -61,7 +61,12 @@ unsigned int __stdcall ThreadHandle(VOID *pParam)
 		}
 		ShowInfoInDlg(CS_Str);
 
-		if (ret_len == 0) continue;
+		if (ret_len == 0)
+		{
+			ShowInfoInDlg(L"Recv信息为0,continue");
+			continue;
+		}
+			
 		nDlgRet = myDlg.DoModal();  //弹出警告窗体
 		CS_Str.Format(L"nDlgRet:%d", nDlgRet);
 		ShowInfoInDlg(CS_Str);

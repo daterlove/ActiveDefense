@@ -298,7 +298,7 @@ void CActiveDefenseDlg::OnBnClickedStartThread()
 
 BOOL CActiveDefenseDlg::PreTranslateMessage(MSG* pMsg)
 {
-	// TODO:  在此添加专用代码和/或调用基类
+	
 	if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_ESCAPE) return TRUE;
 	//if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN) return TRUE;
 	else

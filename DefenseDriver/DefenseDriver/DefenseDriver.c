@@ -24,6 +24,8 @@
 
 PDEVICE_OBJECT g_pDevObj;//生成的设备对象指针
 KEVENT g_kEvent;	//全局事件对象
+INT g_Close_Flag = 0;//驱动退出标志位
+
 extern LIST_ENTRY		my_list_head;
 extern INT g_isRefuse;//指示进程是否被放行
 
@@ -73,7 +75,7 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 	//KdPrint(("这里:%s", buffer));
 	//KdPrint(("code:%x,IOCTL_SEND:%x", code, IOCTL_SEND));
 
-	INT Close_Flag = 0;//驱动退出标志位
+	
 	switch (code)
 	{
 	case IOCTL_SEND://应用发送信号
@@ -90,6 +92,7 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 		Irp->IoStatus.Information = 0;//写入长度
 		break;
 	case IOCTL_RECV://应用读取信号
+		KdPrint(("IOCTL_RECV"));
 		/*
 		if (IsListEmpty(&my_list_head))
 		{
@@ -100,29 +103,21 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 			KdPrint(("链表bu为空"));
 
 		}*/
-		while (IsListEmpty(&my_list_head) && Close_Flag == 0)//链表为空且标志位为0
+		while (IsListEmpty(&my_list_head) && g_Close_Flag == 0)//链表为空且标志位为0
 		{
 			/*
 			if (Close_Flag == 0)
 			{
 				KdPrint(("Close_Flag == 0"));
 			}*/
+			KdPrint(("循环等待之前,g_Close_Flag:%d", g_Close_Flag));
 			KeWaitForSingleObject(&g_kEvent, Executive, KernelMode, FALSE, 0);//等待事件信号  
 		}
 		//KdPrint(("Close_flag:%d", Close_Flag));
 
-		if (Close_Flag == 0)//不是关闭信号
+		if (g_Close_Flag == 0)//不是关闭信号
 		{
-			KdPrint(("(Close_Flag != 0)//不是关闭信号"));
-			/*if (IsListEmpty(&my_list_head))
-			{
-				KdPrint(("链表为空"));
-			}
-			else
-			{
-				KdPrint(("链表bu为空"));
-
-			}*/
+			KdPrint(("g_Close_Flag != 0 //不是关闭信号"));
 
 			PMY_EVENT pEvent = GetEvent();
 			RtlCopyMemory(buffer, &pEvent->nType, sizeof(int));//拷贝4个字节的类型值
@@ -134,19 +129,21 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 		}
 		else
 		{
-			KdPrint(("(Close_here"));
+			KdPrint(("g_Close_Flag非0，关闭信号"));
 			Irp->IoStatus.Information = 0;//写入长度为0
 		}
 		//strcpy((char *)buffer, "just soso");
 		
-		KdPrint(("IOCTL_RECV"));
+		
 		//KdPrint(("inlen:%d,outlen:%d", inlen, outlen));
+		KdPrint(("IOCTL_RECV结束"));
 		break;
 	case IOCTL_CLOSE:
 		KdPrint(("IOCTL_CLOSE"));
-		Close_Flag = 1;
+		g_Close_Flag = 1;
 		//激活事件
 		KeSetEvent(&g_kEvent, IO_NO_INCREMENT, FALSE);
+		DeleteAllList();
 		Irp->IoStatus.Information = 0;//写入长度
 		break;
 

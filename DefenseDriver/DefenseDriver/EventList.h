@@ -18,7 +18,7 @@ void EventListInit();
 NTSTATUS AddEventToList(PMY_EVENT pEvent);
 PMY_EVENT RemoveEventFromList();//从链表头部删除,并返回删除的结构体
 PMY_EVENT GetEvent(); 
-
+VOID DeleteAllList();//在关闭的时候释放所有链表内容
 void ShowList();
 
 

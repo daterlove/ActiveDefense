@@ -2,6 +2,7 @@
 
 #define MEM_TAG 110
 int g_number = 0;//链表的全局标号
+extern INT g_isRefuse;//指示进程是否被放行
 
 LIST_ENTRY		my_list_head;
 KSPIN_LOCK	my_list_lock;
@@ -38,7 +39,18 @@ PMY_EVENT GetEvent()
 	KdPrint(("GetEvent:%d", pEvent->nType));
 	return pEvent;
 }
-
+VOID DeleteAllList()//在关闭的时候释放所有链表内容
+{
+	KdPrint(("DeleteAllList"));
+	g_isRefuse = 0;//进程默认允许运行
+	while (!IsListEmpty(&my_list_head))//只要链表不为空
+	{
+		PMY_EVENT pEvent = RemoveEventFromList();//从链表删除一个事件
+		KeSetEvent(pEvent->pProcessEvent, IO_NO_INCREMENT, FALSE);//激活回调进程
+		KdPrint(("pEvent:%d", pEvent));
+		ExFreePool(pEvent);//释放内存
+	}
+}
 void ShowList()
 {
 	int i = 0;
