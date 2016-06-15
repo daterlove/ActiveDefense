@@ -46,7 +46,11 @@ VOID DeleteAllList()//在关闭的时候释放所有链表内容
 	while (!IsListEmpty(&my_list_head))//只要链表不为空
 	{
 		PMY_EVENT pEvent = RemoveEventFromList();//从链表删除一个事件
-		KeSetEvent(pEvent->pProcessEvent, IO_NO_INCREMENT, FALSE);//激活回调进程
+		if (pEvent->pProcessEvent)
+		{
+			KeSetEvent(pEvent->pProcessEvent, IO_NO_INCREMENT, FALSE);//激活回调进程
+		}
+		
 		KdPrint(("pEvent:%d", pEvent));
 		ExFreePool(pEvent);//释放内存
 	}

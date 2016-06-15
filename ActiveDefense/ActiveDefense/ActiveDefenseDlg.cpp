@@ -211,34 +211,7 @@ void CActiveDefenseDlg::OnBnClickedLoadDrv()
 
 	operaType(szFullPath, szTitle, 0);
 	operaType(szFullPath, szTitle, 1);
-	/*
-	char *msg = { "Hello driver, this is a message from app.\r\n" };
-	char str[100];
-	ULONG ret_len;
-	HANDLE device = NULL;
-	//打开设备
-	device = CreateFile(CWK_DEV_SYM, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM, 0);
-	if (device == INVALID_HANDLE_VALUE)
-	{
-		MessageBox( L"设备打开错误");
-		return;
-	}
-
-
-	if (!DeviceIoControl(device, CTL_CODE_GEN(0x911), msg, strlen(msg) + 1, NULL, 0, &ret_len, 0))
-	{
-		MessageBox(L"发送错误");
-		return;
-	}
-	if (!DeviceIoControl(device, CTL_CODE_GEN(0x912), msg, strlen(msg) + 1, str, sizeof(str), &ret_len, 0))
-	{
-		MessageBox(L"接收错误");
-		return;
-	}
-	CloseHandle(device);
-	CString Str_Temp(str);
-	MessageBox(Str_Temp);
-	*/
+	
 }
 
 void StartThread()

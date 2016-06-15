@@ -5,8 +5,14 @@ int g_ThreadNum = 0;//记录线程个数
 #define TYPE_PROCESS_CREAT 1
 #define TYPE_PROCESS_EXIT	2
 struct EventStrInfo g_EventStrInfo;
-
-VOID AnalysisStr(PCHAR pStr)
+INT AnalysisType(PCHAR pStr)
+{
+	int nType;//事件类型，字符串长度
+	int *pNum = (int *)pStr;//指向缓冲区头部
+	nType = *pNum;
+	return nType;
+}
+VOID AnalysisStr(PCHAR pStr,INT *p_nType)
 {
 	int nType, nLength;//事件类型，字符串长度
 	CString szTemp;
@@ -14,8 +20,7 @@ VOID AnalysisStr(PCHAR pStr)
 	int *pNum=(int *)pStr;//指向缓冲区头部
 	nType = *pNum;
 	nLength = *(pNum + 1);
-	//szTemp.Format(L"nType:%d,nLength:%d", nType, nLength);
-	//	ShowInfoInDlg(szTemp);
+	*p_nType = nType;//返回记录的类型
 
 	//解析出进程路径
 	USHORT *pShort = (USHORT  *)(pStr);//指向UCHAR字符串地址
@@ -44,27 +49,59 @@ VOID AnalysisStr(PCHAR pStr)
 		break;
 	}
 	
-	g_EventStrInfo.szName = g_EventStrInfo.szPath;
-	int nPos = szTemp.Find('\\');
-	while (nPos)//解析出进程名
+	if (nType == TYPE_PROCESS_CREAT)
 	{
-		g_EventStrInfo.szName = g_EventStrInfo.szName.Mid(nPos + 1, g_EventStrInfo.szName.GetLength() - nPos);  //取'\'右边字符串
-		nPos = g_EventStrInfo.szName.Find('\\');   //不包含'\'，函数值返回-1 
-
-		if (nPos == -1)
+		g_EventStrInfo.szName = g_EventStrInfo.szPath;
+		int nPos = szTemp.Find('\\');
+		while (nPos)//解析出进程名
 		{
-			nPos = 0;
+			g_EventStrInfo.szName = g_EventStrInfo.szName.Mid(nPos + 1, g_EventStrInfo.szName.GetLength() - nPos);  //取'\'右边字符串
+			nPos = g_EventStrInfo.szName.Find('\\');   //不包含'\'，函数值返回-1 
+
+			if (nPos == -1)
+			{
+				nPos = 0;
+			}
 		}
+		g_EventStrInfo.szCaption = L"进程事件";
+		g_EventStrInfo.szDescribe = "进程路径:";
+		g_EventStrInfo.szName = L"进程名:" + g_EventStrInfo.szName;
 	}
-
-	g_EventStrInfo.szCaption = L"进程事件";
-	g_EventStrInfo.szName = L"进程名:" + g_EventStrInfo.szName;
-
-	g_EventStrInfo.szDescribe = "进程路径:";
-	ShowInfoInDlg(g_EventStrInfo.szType);
-	ShowInfoInDlg(g_EventStrInfo.szName);
-	ShowInfoInDlg(g_EventStrInfo.szPath);
 	
+
+	ShowInfoInDlg(g_EventStrInfo.szType);
+	if (nType == TYPE_PROCESS_EXIT)
+	{
+		ShowInfoInDlg(L"进程名:"+g_EventStrInfo.szPath);
+		ShowInfoInDlg(L"----------------------------------------------");
+	}
+	else
+	{
+		ShowInfoInDlg(g_EventStrInfo.szName);
+		ShowInfoInDlg(L"路径:"+g_EventStrInfo.szPath);
+		
+	}
+	
+	
+	
+}
+VOID ShowHandleInfo(int nDlgRet)
+{
+	CString szTemp;
+	switch (nDlgRet)
+	{
+	case 0:
+		szTemp.Format(L"用户选择允许该进程运行。\r\n----------------------------------------------");
+		break;
+	case 1:
+		szTemp.Format(L"用户选择禁止该进程运行。\r\n----------------------------------------------");
+		break;
+
+	default:
+		szTemp.Format(L"用户返回值遭遇意外。\r\n----------------------------------------------");
+		break;
+	}
+	ShowInfoInDlg(szTemp);
 }
 unsigned int __stdcall ThreadHandle(VOID *pParam)
 {
@@ -102,19 +139,20 @@ unsigned int __stdcall ThreadHandle(VOID *pParam)
 			ShowInfoInDlg(L"线程消息：从驱动读取消息失败");
 			continue;
 		}
-
-
-		AnalysisStr(Buffer);
+		
 
 		if (ret_len == 0)
 		{
-			ShowInfoInDlg(L"Recv信息为0,continue");
+			ShowInfoInDlg(L"Recv信息为0,线程继续\r\n----------------------------------------------");
 			continue;
 		}
-			
+		int nType;
+		AnalysisStr(Buffer, &nType);//解析受到的数据
+		if (nType != TYPE_PROCESS_CREAT)
+			continue;
+
 		nDlgRet = myDlg.DoModal();  //弹出警告窗体
-		CS_Str.Format(L"nDlgRet:%d", nDlgRet);
-		ShowInfoInDlg(CS_Str);
+		ShowHandleInfo(nDlgRet);
 		if (!DeviceIoControl(device, CTL_CODE_GEN(0x911), &nDlgRet, sizeof(nDlgRet), NULL, 0, &ret_len, 0))//发送处理结果
 		{
 			ShowInfoInDlg(L"线程消息：向驱动发送消息失败");

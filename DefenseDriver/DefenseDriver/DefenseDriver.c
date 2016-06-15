@@ -77,13 +77,17 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 	{
 	case IOCTL_SEND://应用发送信号
 		KdPrint(("IOCTL_SEND"));
-		//KdPrint(("inlen:%d,outlen:%d", inlen, outlen));
-		if (!IsListEmpty(&my_list_head))//链表不为空
+	
+		if (!IsListEmpty(&my_list_head) && inlen==4 )//链表不为空
 		{
-			PMY_EVENT pEvent = RemoveEventFromList();//从链表删除一个事件
-			KeSetEvent(pEvent->pProcessEvent, IO_NO_INCREMENT, FALSE);//激活事件,回调进程继续运行,处理程序是否运行
-
 			g_isRefuse = *(int *)(buffer);//取出应用层返回结果
+			PMY_EVENT pEvent = RemoveEventFromList();//从链表删除一个事件
+
+			if (pEvent->pProcessEvent)
+			{
+				KeSetEvent(pEvent->pProcessEvent, IO_NO_INCREMENT, FALSE);//激活事件,回调进程继续运行,处理程序是否运行
+			}
+			
 			ExFreePool(pEvent);//释放内存
 		}
 		
@@ -96,13 +100,13 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 	
 		while (IsListEmpty(&my_list_head) && g_Close_Flag == 0)//链表为空且标志位为0
 		{
-			KdPrint(("循环等待之前,g_Close_Flag:%d", g_Close_Flag));
+			KdPrint(("循环等待,g_Close_Flag:%d", g_Close_Flag));
 			KeWaitForSingleObject(&g_kEvent, Executive, KernelMode, FALSE, 0);//等待事件信号  
 		}
 
 		if (g_Close_Flag == 0)//不是关闭信号
 		{
-			KdPrint(("g_Close_Flag != 0 //不是关闭信号"));
+			KdPrint(("不是关闭信号"));
 
 			PMY_EVENT pEvent = GetEvent();
 			RtlCopyMemory(buffer, &pEvent->nType, sizeof(int));//拷贝4个字节的类型值
@@ -111,6 +115,12 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 			RtlCopyMemory((PVOID)((char *)buffer + 8), pEvent->wStr, pEvent->nLength);//拷贝wchar字符串
 			KdPrint(("nType:%d,nLength:%d", pEvent->nType, pEvent->nLength));
 			Irp->IoStatus.Information = 8 + pEvent->nLength;//写入长度
+
+			if (pEvent->nType != 1)//不是进程创建
+			{
+				pEvent = RemoveEventFromList();//从链表删除一个事件
+				ExFreePool(pEvent);//释放内存
+			}
 		}
 		else
 		{
@@ -189,26 +199,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath
 	pDriverObject->MajorFunction[IRP_MJ_CLEANUP] = MyClose;
 
 	CreateProcessRoutine();
-	/*
-	PMY_EVENT pEvent = (PMY_EVENT)ExAllocatePoolWithTag(PagedPool, sizeof(MY_EVENT),112);//申请内存
-	if (pEvent == NULL)
-	{
-		KdPrint(("申请空间为空"));
-	}
-	else
-	{
-		KdPrint(("申请空间成功"));
-	}
-	pEvent->nType = 1;
-	pEvent->nLength = 123;
-	KdPrint(("Entry:nTtype:%d,nLen:%d", pEvent->nType, pEvent->nLength));
-	AddEventToList(pEvent);//加入链表
-	ShowList();
-	KdPrint(("------------"));
-	GetEvent();
-
-	RemoveEventFromList();
-	*/
+	
 	return STATUS_SUCCESS;
 }
 

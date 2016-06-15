@@ -67,7 +67,28 @@ __in_opt  PPS_CREATE_NOTIFY_INFO CreateInfo
 	}
 	else
 	{
-		DbgPrint("进程退出: %s", PsGetProcessImageFileName(Process));
+		char *pChr = PsGetProcessImageFileName(Process);//获取char *字符地址
+		DbgPrint("进程退出: %s,len:%d", pChr, strlen(pChr));
+		/**/
+		int len = strlen(pChr);
+		pEvent->nType = 2;
+		pEvent->nLength = len*2;
+		pEvent->pProcessEvent = NULL;
+
+		//ANSI编码 转成 Unicode编码
+		USHORT *pWChr = pEvent->wStr;
+		for (int i = 0; i < pEvent->nLength; i++)
+		{
+			*pWChr = *pChr;
+			pChr++;
+			pWChr++;
+		}
+		*pWChr = 0;
+	
+		//RtlCopyMemory(pEvent->wStr, PsGetProcessImageFileName(Process), pEvent->nLength);//拷贝字符串
+		AddEventToList(pEvent);//加入链表
+		KeSetEvent(&g_kEvent, IO_NO_INCREMENT, FALSE);//激活事件,MyDeviceControl函数继续运行
+		
 	}
 	
 }
