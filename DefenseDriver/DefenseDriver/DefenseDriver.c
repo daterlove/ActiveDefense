@@ -76,17 +76,20 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 	switch (code)
 	{
 	case IOCTL_SEND://应用发送信号
-		KdPrint(("IOCTL_SEND:%s",buffer));
-		KdPrint(("inlen:%d,outlen:%d", inlen, outlen));
-		PMY_EVENT pEvent=RemoveEventFromList();//从链表删除一个事件
-		KeSetEvent(pEvent->pProcessEvent, IO_NO_INCREMENT, FALSE);//激活事件,回调进程继续运行,处理程序是否运行
-		//int *p = buffer;
+		KdPrint(("IOCTL_SEND"));
+		//KdPrint(("inlen:%d,outlen:%d", inlen, outlen));
+		if (!IsListEmpty(&my_list_head))//链表不为空
+		{
+			PMY_EVENT pEvent = RemoveEventFromList();//从链表删除一个事件
+			KeSetEvent(pEvent->pProcessEvent, IO_NO_INCREMENT, FALSE);//激活事件,回调进程继续运行,处理程序是否运行
 
-		g_isRefuse = *(int *)(buffer);
-		//KdPrint(("g_isRefuse = *p:%d", *p));
-		ExFreePool(pEvent);//释放内存
+			g_isRefuse = *(int *)(buffer);//取出应用层返回结果
+			ExFreePool(pEvent);//释放内存
+		}
+		
 
 		Irp->IoStatus.Information = 0;//写入长度
+		KdPrint(("IOCTL_SEND—Over"));
 		break;
 	case IOCTL_RECV://应用读取信号
 		KdPrint(("IOCTL_RECV"));
