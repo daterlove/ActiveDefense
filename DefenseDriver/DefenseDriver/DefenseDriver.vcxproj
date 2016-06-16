@@ -214,12 +214,14 @@
   <ItemGroup>
     <ClCompile Include="DefenseDriver.c" />
     <ClCompile Include="EventList.c" />
-    <ClCompile Include="Process.c" />
+    <ClCompile Include="ProcessCallBack.c" />
+    <ClCompile Include="ProcessProtect.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
     <ClInclude Include="EventList.h" />
-    <ClInclude Include="Process.h" />
+    <ClInclude Include="ProcessCallBack.h" />
+    <ClInclude Include="ProcessProtect.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

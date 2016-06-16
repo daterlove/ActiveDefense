@@ -1,26 +1,17 @@
 #include "common.h"
 #define CDO_DEVICE_NAME    L"\\Device\\DefenseDevice"
 #define CDO_SYB_NAME    L"\\??\\DefenseDevice"
+
 // 从应用层给驱动发送一个字符串。
-#define  IOCTL_SEND \
-	(ULONG)CTL_CODE( \
-	FILE_DEVICE_UNKNOWN, \
-	0x911,METHOD_BUFFERED, \
-	FILE_ANY_ACCESS)
-
+#define  IOCTL_SEND (ULONG)CTL_CODE( FILE_DEVICE_UNKNOWN, 0x911,METHOD_BUFFERED, FILE_ANY_ACCESS)
 // 从驱动读取一个字符串
-#define  IOCTL_RECV\
-	(ULONG)CTL_CODE( \
-	FILE_DEVICE_UNKNOWN, \
-	0x912,METHOD_BUFFERED, \
-	FILE_ANY_ACCESS)
-
+#define  IOCTL_RECV (ULONG)CTL_CODE(FILE_DEVICE_UNKNOWN, 0x912,METHOD_BUFFERED, FILE_ANY_ACCESS)
 // 应用层关闭信号
-#define  IOCTL_CLOSE\
-	(ULONG)CTL_CODE( \
-	FILE_DEVICE_UNKNOWN, \
-	0x913,METHOD_BUFFERED, \
-	FILE_ANY_ACCESS)
+#define  IOCTL_CLOSE (ULONG)CTL_CODE( FILE_DEVICE_UNKNOWN, 0x913,METHOD_BUFFERED, FILE_ANY_ACCESS)
+// 应用层开启进程保护
+#define  IOCTL_PROCESS_PROTECT (ULONG)CTL_CODE( FILE_DEVICE_UNKNOWN, 0x914,METHOD_BUFFERED, FILE_ANY_ACCESS)
+//应用层关闭进程保护
+#define  IOCTL_PROCESS_UNPROTECT (ULONG)CTL_CODE( FILE_DEVICE_UNKNOWN, 0x915,METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 PDEVICE_OBJECT g_pDevObj;//生成的设备对象指针
 KEVENT g_kEvent;	//全局事件对象
@@ -28,6 +19,8 @@ INT g_Close_Flag = 0;//驱动退出标志位
 
 extern LIST_ENTRY		my_list_head;
 extern INT g_isRefuse;//指示进程是否被放行
+extern PEPROCESS g_ProcectEProcess;//保护的进程
+extern ULONG g_OpDat;
 
 NTSTATUS CreateDevice(PDRIVER_OBJECT pDriverObject)
 {
@@ -95,6 +88,7 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 		Irp->IoStatus.Information = 0;//写入长度
 		KdPrint(("IOCTL_SEND—Over"));
 		break;
+	//-----------------------------------------------------------------------------------------------------
 	case IOCTL_RECV://应用读取信号
 		KdPrint(("IOCTL_RECV"));
 	
@@ -130,13 +124,19 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 
 		KdPrint(("IOCTL_RECV结束"));
 		break;
+	//-----------------------------------------------------------------------------------------------------
 	case IOCTL_CLOSE:
 		KdPrint(("IOCTL_CLOSE"));
 		g_Close_Flag = 1;
 	
 		KeSetEvent(&g_kEvent, IO_NO_INCREMENT, FALSE);//激活事件
-		DeleteAllList();
-		Irp->IoStatus.Information = 0;//写入长度
+		DeleteAllList();//删除链表所有内容
+		Irp->IoStatus.Information = 0;
+		break;
+	//-----------------------------------------------------------------------------------------------------
+	case IOCTL_PROCESS_PROTECT:
+		KdPrint(("IO_PROTECT:%s", buffer));
+		Irp->IoStatus.Information=ProcessProcectByName(buffer);
 		break;
 
 	}
@@ -169,6 +169,12 @@ VOID MyUnloadDriver(PDRIVER_OBJECT pDriverObject)
 {
 	UnloadDevice();//删除设备及符号链接
 	UnLoadProcessRoutine();//关闭进程回调
+
+	//关闭进程保护
+	if (g_ProcectEProcess && MmIsAddressValid(g_ProcectEProcess))
+	{
+		ProtectProcess(g_ProcectEProcess, 0, g_OpDat);
+	}
 	KdPrint(("Unload"));
 }
 NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath)

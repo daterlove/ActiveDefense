@@ -27,10 +27,13 @@
     <ClCompile Include="DefenseDriver.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Process.c">
+    <ClCompile Include="EventList.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EventList.c">
+    <ClCompile Include="ProcessCallBack.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessProtect.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -38,10 +41,13 @@
     <ClInclude Include="common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Process.h">
+    <ClInclude Include="EventList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EventList.h">
+    <ClInclude Include="ProcessCallBack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessProtect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

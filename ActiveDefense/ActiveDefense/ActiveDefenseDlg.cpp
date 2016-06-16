@@ -45,6 +45,7 @@ BEGIN_MESSAGE_MAP(CActiveDefenseDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_UNLOAD_DRV, &CActiveDefenseDlg::OnBnClickedUnloadDrv)
 	ON_BN_CLICKED(IDC_START_THREAD, &CActiveDefenseDlg::OnBnClickedStartThread)
 	ON_MESSAGE(WM_SHOW_MSG, &CActiveDefenseDlg::OnShowMsg)    // OnCountMsg是自定义的消息处理函数，可以在这个函数里面进行自定义的消息处理代码
+	ON_BN_CLICKED(IDC_PROCESS_PROTECT, &CActiveDefenseDlg::OnBnClickedProcessProtect)
 END_MESSAGE_MAP()
 
 
@@ -167,6 +168,7 @@ void CActiveDefenseDlg::ControlInit()
 
 void CActiveDefenseDlg::OnBnClickedClose()
 {
+	OnBnClickedUnloadDrv();
 	//g_isProcessOver = 1;//关闭线程
 	ExitProcess(0);
 	//EndDialog(0);//关闭窗体
@@ -276,4 +278,54 @@ BOOL CActiveDefenseDlg::PreTranslateMessage(MSG* pMsg)
 	//if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN) return TRUE;
 	else
 	return CDialogEx::PreTranslateMessage(pMsg);
+}
+
+
+void CActiveDefenseDlg::OnBnClickedProcessProtect()
+{
+	HANDLE device = NULL;
+	ULONG ret_len;
+	char Buffer[MAX_PATH];
+	memset(Buffer, 0, MAX_PATH);
+
+	
+	//UNICODE 转ANSI
+	USHORT *pShort = (USHORT *)AfxGetApp()->m_pszExeName;
+	UCHAR *pChr = (UCHAR *)Buffer;
+	while (*pShort != 0)
+	{
+		*pChr = *pShort;
+		pChr++;
+		pShort++;
+	}/**/
+	strcat(Buffer, ".exe");
+	if (strlen(Buffer) >= 14)//大于14个字节就截取
+	{
+
+		Buffer[14] = 0;
+	}
+	//CString temp(Buffer);
+	//MessageBox(temp);
+	//打开设备
+	device = CreateFile(CWK_DEV_SYM, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM, 0);
+	if (device == INVALID_HANDLE_VALUE)
+	{
+		ShowInfoInDlg(L"主线程：设备打开错误");
+		return;
+	}
+	if (!DeviceIoControl(device, CTL_CODE_GEN(0x914), Buffer, sizeof(Buffer), NULL, 0, &ret_len, 0))//发送
+	{
+
+		ShowInfoInDlg(L"主线程：向驱动发送消息失败");
+	}
+	if (ret_len == 0)
+	{
+		ShowInfoInDlg(L"进程保护 正确成功==\r\n----------------------------------------------");
+	}
+	else
+	{
+		ShowInfoInDlg(L"进程保护 开启失败\r\n\r\n----------------------------------------------");
+	}
+
+	CloseHandle(device);
 }
