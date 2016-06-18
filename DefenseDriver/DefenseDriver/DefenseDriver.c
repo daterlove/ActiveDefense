@@ -170,11 +170,7 @@ VOID MyUnloadDriver(PDRIVER_OBJECT pDriverObject)
 	UnloadDevice();//删除设备及符号链接
 	UnLoadProcessRoutine();//关闭进程回调
 
-	//关闭进程保护
-	if (g_ProcectEProcess && MmIsAddressValid(g_ProcectEProcess))
-	{
-		ProtectProcess(g_ProcectEProcess, 0, g_OpDat);
-	}
+	UnloadProcessProtect();//关闭进程保护
 	KdPrint(("Unload"));
 }
 NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath)

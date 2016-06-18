@@ -105,13 +105,14 @@ VOID ShowHandleInfo(int nDlgRet)
 }
 unsigned int __stdcall ThreadHandle(VOID *pParam)
 {
-	/*
-	g_EventStrInfo.szCaption = L"进程事件";
+	
+/*	g_EventStrInfo.szCaption = L"进程事件";
 	g_EventStrInfo.szType = L"事件类型:进程创建";
 	g_EventStrInfo.szName =L"进程名:360Safe.exe";
 	g_EventStrInfo.szDescribe = "进程路径:";
 	g_EventStrInfo.szPath= L"C:\\Program Files (x86)\\360\\360safe\\Program Files (x86)\\360\\360safe\\360Safe.exe";
-	myDlg.DoModal();  //弹出警告窗体*/
+	myDlg.DoModal();
+*/
 	WarningDlg myDlg;
 
 	int nDlgRet;

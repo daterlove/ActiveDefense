@@ -3,5 +3,5 @@
 	#include "common.h"
 	VOID UnLoadProcessRoutine();
 	NTSTATUS CreateProcessRoutine();
-
+	INT UnloadProcessProtect();
 #endif

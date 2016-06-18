@@ -48,7 +48,18 @@ PEPROCESS GetProcessObjectByName(char *name)
 INT ProcessProcectByName(char *szName)
 {
 	
-	
+	PEPROCESS pEprocess_temp;//先用临时变量，防止因为没有获取到值，g_ProcectEProcess被设置为空
+	pEprocess_temp = GetProcessObjectByName(szName);
+	KdPrint(("进程%s, %p\n", szName, pEprocess_temp));
+
+	if (pEprocess_temp)
+	{
+		g_ProcectEProcess = pEprocess_temp;
+		g_OpDat = ProtectProcess(g_ProcectEProcess, 1, 0);
+		ObDereferenceObject(g_ProcectEProcess);
+		return 0;
+	}
+	/*
 	 g_ProcectEProcess = GetProcessObjectByName(szName);
 	KdPrint(("进程%s, %p\n", szName, g_ProcectEProcess));
 
@@ -57,6 +68,22 @@ INT ProcessProcectByName(char *szName)
 		g_OpDat = ProtectProcess(g_ProcectEProcess, 1, 0);
 		ObDereferenceObject(g_ProcectEProcess);
 		return 0;
-	}
+	}*/
 	 return 1;
+}
+
+INT UnloadProcessProtect()
+{
+	KdPrint(("g_ProcectEProcess:%d", g_ProcectEProcess));
+	//关闭进程保护
+	if (g_ProcectEProcess && MmIsAddressValid(g_ProcectEProcess))
+	{
+		KdPrint(("关闭进程保护"));
+		ProtectProcess(g_ProcectEProcess, 0, g_OpDat);
+		g_ProcectEProcess = 0;
+		g_OpDat = 0;
+
+		return 0;
+	}
+	return 1;
 }
