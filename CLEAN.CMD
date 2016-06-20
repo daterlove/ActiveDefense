@@ -14,4 +14,12 @@ rd /s /q "DefenseDriver\DefenseDriver Package"
 rd /s /q DefenseDriver\DefenseDriver\X64
 rd /s /q DefenseDriver\Win7Debug
 rd /s /q DefenseDriver\DefenseDriver\Win7Debug
+
+del /f /q /s FsFilter\*.sdf
+rd /s /q FsFilter\X64
+rd /s /q "FsFilter\FsFilter Package"
+rd /s /q FsFilter\FsFilter\X64
+rd /s /q FsFilter\Win7Debug
+rd /s /q FsFilter\FsFilter\Win7Debug
+
 pause
