@@ -57,5 +57,6 @@
 #include "DriverControl.h"
 #include "ShowInfo.h"
 #include "WarningDlg.h"
+#include "MiniFilterLoad.h"
 
 #define WM_SHOW_MSG WM_USER+100  

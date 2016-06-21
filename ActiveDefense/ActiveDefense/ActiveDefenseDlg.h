@@ -52,4 +52,5 @@ public:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	CString m_EDIT_STR;
 	afx_msg void OnBnClickedProcessProtect();
+	afx_msg void OnBnClickedLoadFilter();
 };

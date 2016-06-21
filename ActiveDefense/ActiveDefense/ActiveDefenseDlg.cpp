@@ -46,6 +46,7 @@ BEGIN_MESSAGE_MAP(CActiveDefenseDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_START_THREAD, &CActiveDefenseDlg::OnBnClickedStartThread)
 	ON_MESSAGE(WM_SHOW_MSG, &CActiveDefenseDlg::OnShowMsg)    // OnCountMsg是自定义的消息处理函数，可以在这个函数里面进行自定义的消息处理代码
 	ON_BN_CLICKED(IDC_PROCESS_PROTECT, &CActiveDefenseDlg::OnBnClickedProcessProtect)
+	ON_BN_CLICKED(IDC_LOAD_FILTER, &CActiveDefenseDlg::OnBnClickedLoadFilter)
 END_MESSAGE_MAP()
 
 
@@ -320,7 +321,7 @@ void CActiveDefenseDlg::OnBnClickedProcessProtect()
 	}
 	if (ret_len == 0)
 	{
-		ShowInfoInDlg(L"进程保护 正确成功==\r\n----------------------------------------------");
+		ShowInfoInDlg(L"进程保护 正确开启==\r\n----------------------------------------------");
 	}
 	else
 	{
@@ -328,4 +329,64 @@ void CActiveDefenseDlg::OnBnClickedProcessProtect()
 	}
 
 	CloseHandle(device);
+}
+
+ 
+void CActiveDefenseDlg::OnBnClickedLoadFilter()
+{
+	CString caption;
+	GetDlgItem(IDC_LOAD_FILTER)->GetWindowText(caption);//获取按钮名称
+	if (caption == L"开启文件保护")
+	{
+		CFileFind fFind;
+		if (fFind.FindFile(L"FsFilter.inf") && fFind.FindFile(L"FsFilter.sys"))
+		{
+			ShowInfoInDlg(L"检查：文件过滤驱动存在");
+		}
+		else
+		{
+			ShowInfoInDlg(L"文件过滤驱动不存在，请检查文件！\r\n----------------------------------------------");
+			return;
+		}
+		BOOLEAN bRet;
+		//复制文件
+		CopyFileA("FsFilter.inf", "c:\\FsFilter.inf", FALSE);
+		CopyFileA("FsFilter.sys", "c:\\FsFilter.sys", FALSE);
+
+		//加载驱动
+		bRet = LoadWdmDrv("c:\\FsFilter.inf", "FsFilter");
+		if (bRet)
+		{
+			ShowInfoInDlg(L"文件过滤驱动加载成功==");
+		}
+		else
+		{
+			ShowInfoInDlg(L"文件过滤驱动加载失败==");
+			return;
+		}
+		//开启驱动
+		bRet = net_start("FsFilter");
+		if (bRet)
+		{
+			ShowInfoInDlg(L"文件过滤驱动启动成功==\r\n----------------------------------------------");
+		}
+		else
+		{
+			ShowInfoInDlg(L"文件过滤驱动启动失败==\r\n----------------------------------------------");
+			return;
+		}
+
+		GetDlgItem(IDC_LOAD_FILTER)->SetWindowText(L"关闭文件保护");
+	}
+	else
+	{
+		net_stop("FsFilter");
+		UnloadWdmDrv("FsFilter");
+
+		ShowInfoInDlg(L"文件过滤驱动已经关闭\r\n----------------------------------------------");
+		DeleteFileA("c:\\FsFilter.inf");
+		DeleteFileA("c:\\FsFilter.sys");
+		GetDlgItem(IDC_LOAD_FILTER)->SetWindowText(L"开启文件保护");
+	}
+	
 }

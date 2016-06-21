@@ -54,6 +54,9 @@
     <ClInclude Include="DriverControl.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="MiniFilterLoad.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ActiveDefense.cpp">
@@ -81,6 +84,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="DriverControl.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MiniFilterLoad.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
