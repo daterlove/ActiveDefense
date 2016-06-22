@@ -331,6 +331,18 @@ void CActiveDefenseDlg::OnBnClickedProcessProtect()
 	CloseHandle(device);
 }
 
+void CreateProtectFilte()
+{
+	DeleteFile(L"README.TXT");
+	CFile file;
+	char *szContent = "你并不能修改 it\n";
+	if (file.Open(L"README.TXT", CFile::modeCreate | CFile::modeWrite | CFile::modeNoTruncate, NULL))
+	{
+		file.Write(szContent, strlen(szContent));
+		file.Close();
+	}
+
+}
  
 void CActiveDefenseDlg::OnBnClickedLoadFilter()
 {
@@ -338,6 +350,7 @@ void CActiveDefenseDlg::OnBnClickedLoadFilter()
 	GetDlgItem(IDC_LOAD_FILTER)->GetWindowText(caption);//获取按钮名称
 	if (caption == L"开启文件保护")
 	{
+		CreateProtectFilte();
 		CFileFind fFind;
 		if (fFind.FindFile(L"FsFilter.inf") && fFind.FindFile(L"FsFilter.sys"))
 		{
@@ -369,6 +382,7 @@ void CActiveDefenseDlg::OnBnClickedLoadFilter()
 		if (bRet)
 		{
 			ShowInfoInDlg(L"文件过滤驱动启动成功==\r\n----------------------------------------------");
+			ShowInfoInDlg(L"本目录下README.TXT即保护的文件\r\n----------------------------------------------");
 		}
 		else
 		{
