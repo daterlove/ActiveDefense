@@ -29,18 +29,22 @@ INT ProtectProcess(PEPROCESS Process, BOOLEAN bIsProtect, ULONG v)
 PEPROCESS GetProcessObjectByName(char *name)
 {
 	SIZE_T i;
-	for (i = 100; i<20000; i += 4)
+	for (i = 200; i<20000; i += 4)
 	{
 		NTSTATUS st;
 		PEPROCESS ep;
 		st = PsLookupProcessByProcessId((HANDLE)i, &ep);
 		if (NT_SUCCESS(st))
 		{
+		
 			char *pn = PsGetProcessImageFileName(ep);
-			KdPrint(("i:%d,pName:%s", i, pn));
+		//KdPrint(("i:%d,pName:%s", i, pn));
+		
 			if (_stricmp(pn, name) == 0)
 				return ep;
+			
 		}
+		
 	}
 	return NULL;
 }
@@ -56,7 +60,7 @@ INT ProcessProcectByName(char *szName)
 	{
 		g_ProcectEProcess = pEprocess_temp;
 		g_OpDat = ProtectProcess(g_ProcectEProcess, 1, 0);
-		ObDereferenceObject(g_ProcectEProcess);
+		ObDereferenceObject(pEprocess_temp);
 		return 0;
 	}
 	/*

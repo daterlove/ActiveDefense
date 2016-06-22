@@ -55,13 +55,38 @@ BOOL operaType(TCHAR *szFullPath, TCHAR *szName, int iType)
 
 		if (!shCS)
 		{
+			/*int nError = GetLastError();
+			if (nError == ERROR_SERVICE_EXISTS || nError == ERROR_SERVICE_MARKED_FOR_DELETE)
+			{
+				CString temp;
+				temp.Format(L"nError == GetLastError():%d", GetLastError());
+				ShowInfoInDlg(temp);
+				shCS == OpenService(shOSCM, szName, SERVICE_ALL_ACCESS);
+			}*/
+			
 			if (ERROR_SERVICE_EXISTS == GetLastError()) //如果服务已经存在
 				ShowInfoInDlg(L"驱动操作：指定的服务已经存在");
 			else
+			{
+				CString temp;
+				temp.Format(L"GetLastError():%d", GetLastError());
 				ShowInfoInDlg(L"驱动操作：创建服务 失败");
+				ShowInfoInDlg(temp);
+				break;
+			}
+			/*
+			if (!shCS)
+			{
+				CString temp;
+				temp.Format(L"here== GetLastError():%d", GetLastError());
+				ShowInfoInDlg(temp);
+				ShowInfoInDlg(L"驱动操作：创建服务 失败");
+				bSuccess = FALSE;
+				break;
+			}*/
 
-			bSuccess = FALSE;
-			break;
+			
+			//
 		}
 		bSuccess = TRUE;
 
@@ -136,4 +161,26 @@ BOOL operaType(TCHAR *szFullPath, TCHAR *szName, int iType)
 	}
 
 	return bSuccess;
+}
+
+int SendMsgToDriver(int nCode)
+{
+	HANDLE device = NULL;
+	ULONG ret_len;
+
+
+	//打开设备
+	device = CreateFile(CWK_DEV_SYM, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM, 0);
+	if (device == INVALID_HANDLE_VALUE)
+	{
+		ShowInfoInDlg(L"主线程：设备打开错误");
+		return -1;
+	}
+	if (!DeviceIoControl(device, CTL_CODE_GEN(nCode), NULL, 0, NULL, 0, &ret_len, 0))//发送
+	{
+		ShowInfoInDlg(L"主线程：向驱动发送消息失败");
+	}
+
+	CloseHandle(device);
+	return ret_len;
 }

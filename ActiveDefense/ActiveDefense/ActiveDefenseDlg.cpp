@@ -19,6 +19,9 @@
 extern bool g_isProcessOver;//指示程序是否要退出
 extern int g_ThreadNum;//记录线程个数
 HANDLE g_ThreadHandle;
+
+TCHAR szTitle[MAX_PATH] = { L"DefenseDriver" };
+
 CActiveDefenseDlg::CActiveDefenseDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CActiveDefenseDlg::IDD, pParent)
 	, m_EDIT_STR(_T(""))
@@ -43,10 +46,11 @@ BEGIN_MESSAGE_MAP(CActiveDefenseDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_MIN, &CActiveDefenseDlg::OnBnClickedMin)
 	ON_BN_CLICKED(IDC_LOAD_DRV, &CActiveDefenseDlg::OnBnClickedLoadDrv)
 	ON_BN_CLICKED(IDC_UNLOAD_DRV, &CActiveDefenseDlg::OnBnClickedUnloadDrv)
-	ON_BN_CLICKED(IDC_START_THREAD, &CActiveDefenseDlg::OnBnClickedStartThread)
+	//ON_BN_CLICKED(IDC_START_THREAD, &CActiveDefenseDlg::OnBnClickedStartThread)
 	ON_MESSAGE(WM_SHOW_MSG, &CActiveDefenseDlg::OnShowMsg)    // OnCountMsg是自定义的消息处理函数，可以在这个函数里面进行自定义的消息处理代码
 	ON_BN_CLICKED(IDC_PROCESS_PROTECT, &CActiveDefenseDlg::OnBnClickedProcessProtect)
 	ON_BN_CLICKED(IDC_LOAD_FILTER, &CActiveDefenseDlg::OnBnClickedLoadFilter)
+	ON_BN_CLICKED(IDC_PROCESS_FILTER, &CActiveDefenseDlg::OnBnClickedProcessFilter)
 END_MESSAGE_MAP()
 
 
@@ -203,26 +207,48 @@ void GetAppPath(TCHAR *szCurFile, TCHAR *szSysName) //返回本地目录下sys路径
 }
 
 
-TCHAR szTitle[MAX_PATH] = { L"DefenseDriver" };
-#define CWK_DEV_SYM L"\\\\.\\DefenseDevice"
 
+
+void StartThread()
+{
+	//开启线程
+	if (g_ThreadNum < 1)//线程数量小于一个
+	{
+		g_isProcessOver = 0;//线程开启标志位
+		g_ThreadHandle = (HANDLE)_beginthreadex(NULL, 0, ThreadHandle, NULL, 0, NULL);
+	}
+	else
+	{
+		ShowInfoInDlg (L"只允许开启一个监控线程");
+	}/**/
+	
+}
 
 void CActiveDefenseDlg::OnBnClickedLoadDrv()
 {
 	TCHAR szFullPath[256];
 	GetAppPath(szFullPath, L"DefenseDriver.sys");
 
-	operaType(szFullPath, szTitle, 0);
-	operaType(szFullPath, szTitle, 1);
+	BOOLEAN bRet;
+	bRet=operaType(szFullPath, szTitle, 0);
+	if (!bRet)
+	{
+		return;
+	}
+		
+
+	bRet = operaType(szFullPath, szTitle, 1);
+	if (!bRet)
+	{
+		return;
+	}
+
 	
+	//开启线程
+	StartThread();
 }
 
-void StartThread()
-{
-	 g_ThreadHandle = (HANDLE)_beginthreadex(NULL, 0, ThreadHandle, NULL, 0, NULL);
-	//WaitForSingleObject(handle, INFINITE); //等待线程结束
-	//CloseHandle(handle);
-}
+
 int SendDrvClose()//发送给设备CLOSE信号，激活线程，防止线程阻塞在内核层
 {
 	HANDLE device = NULL;
@@ -251,22 +277,7 @@ void CActiveDefenseDlg::OnBnClickedUnloadDrv()
 	SendDrvClose();
 	
 	operaType(szFullPath, szTitle, 2);
-	operaType(szFullPath, szTitle, 3);
-}
-
-
-void CActiveDefenseDlg::OnBnClickedStartThread()
-{
-	if (g_ThreadNum < 1)//线程数量小于一个
-	{
-		g_isProcessOver = 0;//线程开启标志位
-		StartThread();
-	}
-	else
-	{
-		MessageBox(L"只允许开启一个监控线程");
-	}
-	
+	//operaType(szFullPath, szTitle, 3);
 }
 
 
@@ -282,14 +293,14 @@ BOOL CActiveDefenseDlg::PreTranslateMessage(MSG* pMsg)
 }
 
 
-void CActiveDefenseDlg::OnBnClickedProcessProtect()
+int StartProcessProtect()//向驱动发送消息开启进程保护
 {
+	int nReturn = 0;
 	HANDLE device = NULL;
 	ULONG ret_len;
 	char Buffer[MAX_PATH];
 	memset(Buffer, 0, MAX_PATH);
 
-	
 	//UNICODE 转ANSI
 	USHORT *pShort = (USHORT *)AfxGetApp()->m_pszExeName;
 	UCHAR *pChr = (UCHAR *)Buffer;
@@ -298,37 +309,58 @@ void CActiveDefenseDlg::OnBnClickedProcessProtect()
 		*pChr = *pShort;
 		pChr++;
 		pShort++;
-	}/**/
+	}
 	strcat(Buffer, ".exe");
 	if (strlen(Buffer) >= 14)//大于14个字节就截取
 	{
 
 		Buffer[14] = 0;
 	}
-	//CString temp(Buffer);
-	//MessageBox(temp);
+
 	//打开设备
 	device = CreateFile(CWK_DEV_SYM, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM, 0);
 	if (device == INVALID_HANDLE_VALUE)
 	{
 		ShowInfoInDlg(L"主线程：设备打开错误");
-		return;
+		return -1;
 	}
 	if (!DeviceIoControl(device, CTL_CODE_GEN(0x914), Buffer, sizeof(Buffer), NULL, 0, &ret_len, 0))//发送
 	{
 
 		ShowInfoInDlg(L"主线程：向驱动发送消息失败");
+		nReturn = -1;
 	}
 	if (ret_len == 0)
 	{
-		ShowInfoInDlg(L"进程保护 正确开启==\r\n----------------------------------------------");
+		ShowInfoInDlg(L"进程保护 正确开启,可以尝试结束本进程==\r\n----------------------------------------------");
+		nReturn = 0;
 	}
 	else
 	{
-		ShowInfoInDlg(L"进程保护 开启失败\r\n\r\n----------------------------------------------");
+		ShowInfoInDlg(L"进程保护 开启失败\r\n---------------------------------------------");
+		nReturn = -1;
 	}
 
 	CloseHandle(device);
+	return nReturn;
+}
+void CActiveDefenseDlg::OnBnClickedProcessProtect()
+{
+	CString caption;
+	GetDlgItem(IDC_PROCESS_PROTECT)->GetWindowText(caption);//获取按钮名称
+	if (caption == L"开启进程保护")
+	{
+		int nRet = StartProcessProtect();
+		if (nRet == 0)//成功开启保护
+		{
+			GetDlgItem(IDC_PROCESS_PROTECT)->SetWindowText(L"进程保护中");
+		}
+	}
+	else
+	{
+		ShowInfoInDlg(L"本进程 正在 被保护中==\r\n----------------------------------------------");
+	}
+
 }
 
 void CreateProtectFilte()
@@ -403,4 +435,39 @@ void CActiveDefenseDlg::OnBnClickedLoadFilter()
 		GetDlgItem(IDC_LOAD_FILTER)->SetWindowText(L"开启文件保护");
 	}
 	
+}
+
+
+void CActiveDefenseDlg::OnBnClickedProcessFilter()
+{
+	CString caption;
+	GetDlgItem(IDC_PROCESS_FILTER)->GetWindowText(caption);//获取按钮名称
+	if (caption == L"开启进程监控")
+	{
+		int nRet = SendMsgToDriver(IOCTL_PROCESS_FILTER);
+		if (nRet==0)
+		{
+			ShowInfoInDlg(L"开启进程监控成功==\r\n----------------------------------------------");
+			GetDlgItem(IDC_PROCESS_FILTER)->SetWindowText(L"关闭进程监控");
+		}
+		else
+		{
+			ShowInfoInDlg(L"开启进程监控失败==\r\n----------------------------------------------");
+		}
+			
+	}
+	else
+	{
+		int nRet = SendMsgToDriver(IOCTL_PROCESS_UNFILTER);
+		if (nRet==0)
+		{
+			ShowInfoInDlg(L"关闭进程监控成功==\r\n----------------------------------------------");
+			GetDlgItem(IDC_PROCESS_FILTER)->SetWindowText(L"开启进程监控");
+		}
+		else
+		{
+			ShowInfoInDlg(L"关闭进程监控失败==\r\n----------------------------------------------");
+		}
+		
+	}
 }

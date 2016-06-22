@@ -131,7 +131,7 @@ unsigned int __stdcall ThreadHandle(VOID *pParam)
 		g_ThreadNum--;//线程总个数-1
 		return -1;
 	}
-	ShowInfoInDlg(L"线程消息：监控线程开启");
+	ShowInfoInDlg(L"线程消息：监控线程开启\r\n----------------------------------------------");
 	while (!g_isProcessOver)
 	{
 
@@ -144,7 +144,7 @@ unsigned int __stdcall ThreadHandle(VOID *pParam)
 
 		if (ret_len == 0)
 		{
-			ShowInfoInDlg(L"Recv信息为0,线程继续\r\n----------------------------------------------");
+			ShowInfoInDlg(L"读取到的返回信息为0,线程继续\r\n----------------------------------------------");
 			continue;
 		}
 		int nType;
@@ -165,6 +165,6 @@ unsigned int __stdcall ThreadHandle(VOID *pParam)
 	CloseHandle(device);
 	g_ThreadNum--;//线程总个数-1
 	//MessageBox(NULL, L"线程退出", L"", NULL);
-	ShowInfoInDlg(L"线程消息：监控线程退出");
+	ShowInfoInDlg(L"线程消息：监控线程退出\r\n----------------------------------------------");
 	return 0;
 }

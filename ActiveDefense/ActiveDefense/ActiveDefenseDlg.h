@@ -32,25 +32,29 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
-//	virtual HRESULT accHitTest(long xLeft, long yTop, VARIANT *pvarChild);
-	afx_msg LRESULT OnNcHitTest(CPoint point);
-	afx_msg LRESULT OnShowMsg(WPARAM, LPARAM);
-	CTraButton btn_close;
-	CTraButton btn_min;
-	// 控件信息初始化
-	void ControlInit();
-	void EditBoxToBottom(void);
-	void ShowInText(CString *str);
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	
 	afx_msg void OnBnClickedClose();
 	afx_msg void OnBnClickedMin();
 	afx_msg void OnBnClickedLoadDrv();
 	afx_msg void OnBnClickedUnloadDrv();
-	afx_msg void OnBnClickedStartThread();
-
-	virtual BOOL PreTranslateMessage(MSG* pMsg);
-	CString m_EDIT_STR;
 	afx_msg void OnBnClickedProcessProtect();
 	afx_msg void OnBnClickedLoadFilter();
+	afx_msg void OnBnClickedProcessFilter();
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+	afx_msg LRESULT OnNcHitTest(CPoint point);
+	afx_msg LRESULT OnShowMsg(WPARAM, LPARAM);
+
+	CTraButton btn_close;
+	CTraButton btn_min;
+	CString m_EDIT_STR;
+
+	// 控件信息初始化
+	void ControlInit();
+	void EditBoxToBottom(void);
+	void ShowInText(CString *str);
+
+	
+	
+
 };

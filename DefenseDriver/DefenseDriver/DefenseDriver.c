@@ -12,6 +12,10 @@
 #define  IOCTL_PROCESS_PROTECT (ULONG)CTL_CODE( FILE_DEVICE_UNKNOWN, 0x914,METHOD_BUFFERED, FILE_ANY_ACCESS)
 //应用层关闭进程保护
 #define  IOCTL_PROCESS_UNPROTECT (ULONG)CTL_CODE( FILE_DEVICE_UNKNOWN, 0x915,METHOD_BUFFERED, FILE_ANY_ACCESS)
+// 应用层开启进程监控
+#define  IOCTL_PROCESS_FILTER (ULONG)CTL_CODE( FILE_DEVICE_UNKNOWN, 0x916,METHOD_BUFFERED, FILE_ANY_ACCESS)
+//应用层关闭进程监控
+#define  IOCTL_PROCESS_UNFILTER (ULONG)CTL_CODE( FILE_DEVICE_UNKNOWN, 0x917,METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 PDEVICE_OBJECT g_pDevObj;//生成的设备对象指针
 KEVENT g_kEvent;	//全局事件对象
@@ -120,6 +124,7 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 		{
 			KdPrint(("g_Close_Flag非0，关闭信号"));
 			Irp->IoStatus.Information = 0;//写入长度为0
+			g_Close_Flag = 0;//重新设置为0 ,下次应用读取会阻塞
 		}
 
 		KdPrint(("IOCTL_RECV结束"));
@@ -133,12 +138,36 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 		DeleteAllList();//删除链表所有内容
 		Irp->IoStatus.Information = 0;
 		break;
-	//-----------------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------------------------------------
 	case IOCTL_PROCESS_PROTECT:
 		KdPrint(("IO_PROTECT:%s", buffer));
 		Irp->IoStatus.Information=ProcessProcectByName(buffer);
 		break;
+	//-----------------------------------------------------------------------------------------------------------------------------
+	case	IOCTL_PROCESS_UNPROTECT:
+		KdPrint(("IOCTL_PROCESS_UNPROTECT"));
+		
+		Irp->IoStatus.Information = UnloadProcessProtect();//关闭进程保护
 
+		KdPrint(("IOCTL_PROCESS_UNPROTECT Over"));
+		break;
+	//-----------------------------------------------------------------------------------------------------------------------------
+	case IOCTL_PROCESS_FILTER:
+		KdPrint(("IOCTL_PROCESS_FILTER"));
+		Irp->IoStatus.Information = CreateProcessRoutine();//开启进程回调
+		break;
+	//-----------------------------------------------------------------------------------------------------------------------------
+	case IOCTL_PROCESS_UNFILTER:
+		KdPrint(("IOCTL_PROCESS_UNFILTER"));
+		g_Close_Flag = 1;
+
+		KeSetEvent(&g_kEvent, IO_NO_INCREMENT, FALSE);//激活事件
+		DeleteAllList();//删除链表所有内容
+		UnLoadProcessRoutine();//关闭进程回调
+
+		Irp->IoStatus.Information = 0;
+		break;
+	//-----------------------------------------------------------------------------------------------------------------------------
 	}
 
 	
@@ -200,7 +229,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath
 	pDriverObject->MajorFunction[IRP_MJ_CLOSE] = MyClose;
 	pDriverObject->MajorFunction[IRP_MJ_CLEANUP] = MyClose;
 
-	CreateProcessRoutine();
+	
 	
 	return STATUS_SUCCESS;
 }
