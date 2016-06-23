@@ -384,7 +384,7 @@ void CActiveDefenseDlg::OnBnClickedLoadFilter()
 	{
 		CreateProtectFilte();
 		CFileFind fFind;
-		if (fFind.FindFile(L"FsFilter.inf") && fFind.FindFile(L"FsFilter.sys"))
+		if (fFind.FindFile(L"FsFilter.sys"))
 		{
 			ShowInfoInDlg(L"检查：文件过滤驱动存在");
 		}
@@ -394,12 +394,10 @@ void CActiveDefenseDlg::OnBnClickedLoadFilter()
 			return;
 		}
 		BOOLEAN bRet;
-		//复制文件
-		CopyFileA("FsFilter.inf", "c:\\FsFilter.inf", FALSE);
-		CopyFileA("FsFilter.sys", "c:\\FsFilter.sys", FALSE);
-
+		
+	//InstallDriver("HelloDDK", ".\\HelloDDK.sys", "370030"/*Altitude*/);
 		//加载驱动
-		bRet = LoadWdmDrv("c:\\FsFilter.inf", "FsFilter");
+		bRet = InstallDriver("FsFilter", ".\\FsFilter.sys", "370030");
 		if (bRet)
 		{
 			ShowInfoInDlg(L"文件过滤驱动加载成功==");
@@ -410,7 +408,7 @@ void CActiveDefenseDlg::OnBnClickedLoadFilter()
 			return;
 		}
 		//开启驱动
-		bRet = net_start("FsFilter");
+		bRet = StartDriver (L"FsFilter");
 		if (bRet)
 		{
 			ShowInfoInDlg(L"文件过滤驱动启动成功==\r\n----------------------------------------------");
@@ -426,12 +424,8 @@ void CActiveDefenseDlg::OnBnClickedLoadFilter()
 	}
 	else
 	{
-		net_stop("FsFilter");
-		UnloadWdmDrv("FsFilter");
-
+		StopDriver(L"FsFilter");
 		ShowInfoInDlg(L"文件过滤驱动已经关闭\r\n----------------------------------------------");
-		DeleteFileA("c:\\FsFilter.inf");
-		DeleteFileA("c:\\FsFilter.sys");
 		GetDlgItem(IDC_LOAD_FILTER)->SetWindowText(L"开启文件保护");
 	}
 	

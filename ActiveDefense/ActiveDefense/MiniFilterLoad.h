@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-BOOLEAN LoadWdmDrv(char *inf, char *szDrvSvcName);
-BOOLEAN net_start(char *szDrvSvcName);
-BOOLEAN net_stop(char *szDrvSvcName);
-BOOLEAN UnloadWdmDrv(char *szDrvSvcName);
+BOOL InstallDriver(const char* lpszDriverName, const char* lpszDriverPath, const char* lpszAltitude);
+BOOL StartDriver(const WCHAR * lpszDriverName);
+BOOL StopDriver(const WCHAR * lpszDriverName);
+BOOL DeleteDriver(const WCHAR* lpszDriverName);
