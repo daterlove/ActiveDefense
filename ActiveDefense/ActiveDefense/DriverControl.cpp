@@ -20,8 +20,6 @@ BOOL operaType(TCHAR *szFullPath, TCHAR *szName, int iType)
 	shOSCM = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 	if (!shOSCM)
 	{
-		//SetWindowText(hwndStatus, TEXT("OpenSCManager时出错！"));
-		//MessageBox(NULL, L"OpenSCManager时出错！", NULL, NULL);
 		ShowInfoInDlg(L"驱动操作：OpenSCManager 出错");
 		return FALSE;
 	}
@@ -55,15 +53,6 @@ BOOL operaType(TCHAR *szFullPath, TCHAR *szName, int iType)
 
 		if (!shCS)
 		{
-			/*int nError = GetLastError();
-			if (nError == ERROR_SERVICE_EXISTS || nError == ERROR_SERVICE_MARKED_FOR_DELETE)
-			{
-				CString temp;
-				temp.Format(L"nError == GetLastError():%d", GetLastError());
-				ShowInfoInDlg(temp);
-				shCS == OpenService(shOSCM, szName, SERVICE_ALL_ACCESS);
-			}*/
-			
 			if (ERROR_SERVICE_EXISTS == GetLastError()) //如果服务已经存在
 				ShowInfoInDlg(L"驱动操作：指定的服务已经存在");
 			else
@@ -74,19 +63,6 @@ BOOL operaType(TCHAR *szFullPath, TCHAR *szName, int iType)
 				ShowInfoInDlg(temp);
 				break;
 			}
-			/*
-			if (!shCS)
-			{
-				CString temp;
-				temp.Format(L"here== GetLastError():%d", GetLastError());
-				ShowInfoInDlg(temp);
-				ShowInfoInDlg(L"驱动操作：创建服务 失败");
-				bSuccess = FALSE;
-				break;
-			}*/
-
-			
-			//
 		}
 		bSuccess = TRUE;
 
@@ -124,8 +100,7 @@ BOOL operaType(TCHAR *szFullPath, TCHAR *szName, int iType)
 			bSuccess = FALSE;
 			break;
 		}
-		//SetWindowText(hwndStatus, TEXT("成功停止服务！"));
-		//MessageBox(NULL, L"成功停止服务", NULL, NULL);
+
 		ShowInfoInDlg(L"驱动操作：成功停止服务");
 		bSuccess = TRUE;
 		break;
@@ -133,14 +108,11 @@ BOOL operaType(TCHAR *szFullPath, TCHAR *szName, int iType)
 	case 3: //移除服务
 		if (!DeleteService(shCS))
 		{
-			//SetWindowText(hwndStatus, TEXT("不能移除服务！"));
-			//MessageBox(NULL, L"不能移除服务", NULL, NULL);
 			ShowInfoInDlg(L"驱动操作：不能移除服务");
 			bSuccess = FALSE;
 			break;
 		}
-		//SetWindowText(hwndStatus, TEXT("成功移除服务！"));
-		//MessageBox(NULL, L"成功移除服务", NULL, NULL);
+
 		ShowInfoInDlg(L"驱动操作：成功移除服务\r\n----------------------------------------");
 		bSuccess = TRUE;
 		break;

@@ -1,4 +1,9 @@
 #include "common.h"
+#define MEM_TAG 112
+extern KEVENT g_kEvent;	//全局事件对象
+extern INT g_isRefuse;//指示进程是否被放行
+INT g_isMoudleFilterLoad = 0;
+
 BOOLEAN VxkCopyMemory(PVOID pDestination, PVOID pSourceAddress, SIZE_T SizeOfCopy)
 {
 	PMDL pMdl = NULL;
@@ -53,33 +58,73 @@ __in HANDLE  ProcessId,
 __in PIMAGE_INFO  ImageInfo
 )
 {
+	
+
 	PVOID pDrvEntry;
-	char szFullImageName[260] = { 0 };
+	//char szFullImageName[260] = { 0 };
+	KEVENT ImageEvent;
+	PMY_EVENT pEvent;//本次事件
+	
 	if (FullImageName != NULL && MmIsAddressValid(FullImageName))
 	{
 		if (ProcessId == 0)//父调用对象是系统，所以加载的是驱动
 		{
-			DbgPrint("ImageName:%wZ\n", FullImageName);
-			pDrvEntry = GetDriverEntryByImageBase(ImageInfo->ImageBase);
-			DbgPrint("DriverEntry: %p\n", pDrvEntry);
+			KdPrint(("ImageName:%wZ\n", FullImageName));
+
+			//初始化事件,同步事件
+			KeInitializeEvent(&ImageEvent, SynchronizationEvent, FALSE);
+			pEvent = (PMY_EVENT)ExAllocatePoolWithTag(PagedPool, sizeof(MY_EVENT), MEM_TAG);//申请内存
+			if (pEvent == NULL)
+			{
+				return;
+			}
+			pEvent->nType =3;
+			pEvent->nLength = FullImageName->Length;
+			pEvent->pProcessEvent = &ImageEvent;
+			RtlCopyMemory(pEvent->wStr, FullImageName->Buffer, pEvent->nLength);//拷贝字符串
+
+			AddEventToList(pEvent);//加入链表
+			KeSetEvent(&g_kEvent, IO_NO_INCREMENT, FALSE);//激活事件,MyDeviceControl函数继续运行
+
+			KeWaitForSingleObject(&ImageEvent, Executive, KernelMode, FALSE, 0);//等待事件的处理信号 
+
+			
+			
+
+			if (g_isRefuse)
+			{
+				pDrvEntry = GetDriverEntryByImageBase(ImageInfo->ImageBase);
+				KdPrint(("禁止加载驱动，DriverEntry: %p\n", pDrvEntry));
+				DenyLoadDriver(pDrvEntry);
+			}
 /*		UnicodeToChar(FullImageName, szFullImageName);
 		if (strstr(_strlwr(szFullImageName), "win64ast.sys"))
 			{
 				DbgPrint("Deny load [WIN64AST.SYS]");
 				//禁止加载win64ast.sys
-				DenyLoadDriver(pDrvEntry);
+				
 			}*/
+			KdPrint(("LoadImage处理结束"));
 		}
 	}
 }
 
 INT MoudleFilterLoad()
 {
+	KdPrint(("MoudleFilterLoad"));
 	PsSetLoadImageNotifyRoutine((PLOAD_IMAGE_NOTIFY_ROUTINE)LoadImageNotifyRoutine);
+	g_isMoudleFilterLoad = 1;
 	return 0;
 }
 INT MoudleFilterUnLoad()
 {
-	PsRemoveLoadImageNotifyRoutine((PLOAD_IMAGE_NOTIFY_ROUTINE)LoadImageNotifyRoutine);
+	KdPrint(("MoudleFilterUnLoad"));
+
+	if (g_isMoudleFilterLoad)
+	{
+		PsRemoveLoadImageNotifyRoutine((PLOAD_IMAGE_NOTIFY_ROUTINE)LoadImageNotifyRoutine);
+		g_isMoudleFilterLoad = 0;
+	}
+	
 	return 0;
 }

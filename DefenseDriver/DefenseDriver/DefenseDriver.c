@@ -118,7 +118,7 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 			KdPrint(("nType:%d,nLength:%d", pEvent->nType, pEvent->nLength));
 			Irp->IoStatus.Information = 8 + pEvent->nLength;//写入长度
 
-			if (pEvent->nType != 1)//不是进程创建
+			if (pEvent->nType== 2 )//进程退出事件
 			{
 				pEvent = RemoveEventFromList();//从链表删除一个事件
 				ExFreePool(pEvent);//释放内存
@@ -179,8 +179,12 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 	//-----------------------------------------------------------------------------------------------------------------------------
 	case IOCTL_DRIVER_UNFILTER:
 		KdPrint(("IOCTL_DRIVER_UNFILTER"));
+		g_Close_Flag = 1;
 
-		Irp->IoStatus.Information = MoudleFilterUnLoad();//开启进程回调
+		KeSetEvent(&g_kEvent, IO_NO_INCREMENT, FALSE);//激活事件
+		DeleteAllList();//删除链表所有内容
+		
+		Irp->IoStatus.Information = MoudleFilterUnLoad();//关闭模块回调
 		break;
 	//-----------------------------------------------------------------------------------------------------------------------------
 	}
@@ -215,6 +219,7 @@ VOID MyUnloadDriver(PDRIVER_OBJECT pDriverObject)
 	UnLoadProcessRoutine();//关闭进程回调
 
 	UnloadProcessProtect();//关闭进程保护
+	MoudleFilterUnLoad();//关闭模块监控
 	KdPrint(("Unload"));
 }
 NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath)

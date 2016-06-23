@@ -4,6 +4,7 @@ int g_ThreadNum = 0;//记录线程个数
 #define CWK_DEV_SYM L"\\\\.\\DefenseDevice"
 #define TYPE_PROCESS_CREAT 1
 #define TYPE_PROCESS_EXIT	2
+#define TYPE_DRIVER_LOAD 	3
 struct EventStrInfo g_EventStrInfo;
 INT AnalysisType(PCHAR pStr)
 {
@@ -22,18 +23,30 @@ VOID AnalysisStr(PCHAR pStr,INT *p_nType)
 	nLength = *(pNum + 1);
 	*p_nType = nType;//返回记录的类型
 
-	//解析出进程路径
-	USHORT *pShort = (USHORT  *)(pStr);//指向UCHAR字符串地址
-	pShort += 8;//忽略前4个字节
+
+	USHORT *pShort = (USHORT  *)(pStr);
+	pShort += 4;//指向UCHAR字符串地址
 	g_EventStrInfo.szPath = L"";
-	for (int i = 0; i<nLength / 2 - 4; i++)
+
+	if (nType != TYPE_PROCESS_EXIT)//不是进程退出消息
 	{
-		//if (*pShort != 0)//没有到结束符
-		g_EventStrInfo.szPath.AppendChar(*pShort);
-		pShort++;
+		pShort += 4;//略过前4个字节
+		for (int i = 0; i<nLength / 2 - 4; i++)
+		{
+			g_EventStrInfo.szPath.AppendChar(*pShort);
+			pShort++;
+		}
 	}
-	//szTemp = L"For Test";
-	
+	else
+	{
+		for (int i = 0; i<nLength / 2; i++)
+		{
+			g_EventStrInfo.szPath.AppendChar(*pShort);
+			pShort++;
+		}
+
+	}
+
 	//------------------------------------------------------------------------
 	switch (nType)//解析事件类型
 	{
@@ -43,12 +56,16 @@ VOID AnalysisStr(PCHAR pStr,INT *p_nType)
 	case TYPE_PROCESS_EXIT:
 		g_EventStrInfo.szType = L"事件类型：进程退出";
 		break;
+	case TYPE_DRIVER_LOAD:
+		g_EventStrInfo.szType = L"事件类型：驱动加载";
+		break;
 
 	default:
 		g_EventStrInfo.szType = L"事件类型：未定义事件类型";
 		break;
 	}
-	
+	ShowInfoInDlg(g_EventStrInfo.szType);
+
 	if (nType == TYPE_PROCESS_CREAT)
 	{
 		g_EventStrInfo.szName = g_EventStrInfo.szPath;
@@ -67,19 +84,41 @@ VOID AnalysisStr(PCHAR pStr,INT *p_nType)
 		g_EventStrInfo.szDescribe = "进程路径:";
 		g_EventStrInfo.szName = L"进程名:" + g_EventStrInfo.szName;
 	}
+	else if (nType == TYPE_DRIVER_LOAD)
+	{
+		g_EventStrInfo.szName = g_EventStrInfo.szPath;
+		int nPos = szTemp.Find('\\');
+		while (nPos)//解析出进程名
+		{
+			g_EventStrInfo.szName = g_EventStrInfo.szName.Mid(nPos + 1, g_EventStrInfo.szName.GetLength() - nPos);  //取'\'右边字符串
+			nPos = g_EventStrInfo.szName.Find('\\');   //不包含'\'，函数值返回-1 
+
+			if (nPos == -1)
+			{
+				nPos = 0;
+			}
+		}
+		g_EventStrInfo.szCaption = L"驱动事件";
+		g_EventStrInfo.szDescribe = "驱动路径:";
+		g_EventStrInfo.szName = L"驱动名:" + g_EventStrInfo.szName;
+	}
 	
 
-	ShowInfoInDlg(g_EventStrInfo.szType);
+	
 	if (nType == TYPE_PROCESS_EXIT)
 	{
 		ShowInfoInDlg(L"进程名:"+g_EventStrInfo.szPath);
 		ShowInfoInDlg(L"----------------------------------------------");
 	}
-	else
+	else if (nType == TYPE_PROCESS_CREAT)
 	{
 		ShowInfoInDlg(g_EventStrInfo.szName);
 		ShowInfoInDlg(L"路径:"+g_EventStrInfo.szPath);
-		
+	}
+	else if (nType == TYPE_DRIVER_LOAD)
+	{
+		ShowInfoInDlg(g_EventStrInfo.szName);
+		ShowInfoInDlg(L"路径:" + g_EventStrInfo.szPath);
 	}
 	
 	
@@ -91,10 +130,10 @@ VOID ShowHandleInfo(int nDlgRet)
 	switch (nDlgRet)
 	{
 	case 0:
-		szTemp.Format(L"用户选择允许该进程运行。\r\n----------------------------------------------");
+		szTemp.Format(L"用户选择允许该行为继续。\r\n----------------------------------------------");
 		break;
 	case 1:
-		szTemp.Format(L"用户选择禁止该进程运行。\r\n----------------------------------------------");
+		szTemp.Format(L"用户选择禁止该行为继续。\r\n----------------------------------------------");
 		break;
 
 	default:
@@ -149,7 +188,7 @@ unsigned int __stdcall ThreadHandle(VOID *pParam)
 		}
 		int nType;
 		AnalysisStr(Buffer, &nType);//解析受到的数据
-		if (nType != TYPE_PROCESS_CREAT)
+		if (nType != TYPE_PROCESS_CREAT && nType != TYPE_DRIVER_LOAD)
 			continue;
 
 		nDlgRet = myDlg.DoModal();  //弹出警告窗体

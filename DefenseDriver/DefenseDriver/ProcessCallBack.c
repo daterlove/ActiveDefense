@@ -46,7 +46,7 @@ __in_opt  PPS_CREATE_NOTIFY_INFO CreateInfo
 		pEvent->pProcessEvent = &ProcessEvent;
 
 		RtlCopyMemory(pEvent->wStr, CreateInfo->ImageFileName->Buffer, pEvent->nLength);//拷贝字符串
-		KdPrint(("ProcessRoutine:nTtype:%d,nLen:%d", pEvent->nType, pEvent->nLength));
+		//KdPrint(("ProcessRoutine:nTtype:%d,nLen:%d", pEvent->nType, pEvent->nLength));
 		
 		AddEventToList(pEvent);//加入链表
 
@@ -57,7 +57,7 @@ __in_opt  PPS_CREATE_NOTIFY_INFO CreateInfo
 		KeSetEvent(&g_kEvent, IO_NO_INCREMENT, FALSE);//激活事件,MyDeviceControl函数继续运行
 
 		KeWaitForSingleObject(&ProcessEvent, Executive, KernelMode, FALSE, 0);//等待事件的处理信号 
-		KdPrint(("g_isRefuse:%d", g_isRefuse));
+		//KdPrint(("g_isRefuse:%d", g_isRefuse));
 		if (g_isRefuse)
 		{
 			DbgPrint("禁止创建进程！");
