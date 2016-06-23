@@ -36,6 +36,9 @@
     <ClCompile Include="ProcessProtect.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MoudleFilter.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h">
@@ -48,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ProcessProtect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MoudleFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -6,6 +6,8 @@
 #define  IOCTL_PROCESS_UNPROTECT  0x915//应用层关闭进程保护
 #define  IOCTL_PROCESS_FILTER 0x916// 应用层开启进程监控
 #define  IOCTL_PROCESS_UNFILTER 0x917//应用层关闭进程监控
+#define  IOCTL_DRIVER_FILTER  0x918// 应用层开启驱动监控
+#define  IOCTL_DRIVER_UNFILTER  0x919//应用层关闭驱动监控
 
 
 #define CWK_DEV_SYM L"\\\\.\\DefenseDevice"

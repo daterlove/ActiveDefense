@@ -16,6 +16,10 @@
 #define  IOCTL_PROCESS_FILTER (ULONG)CTL_CODE( FILE_DEVICE_UNKNOWN, 0x916,METHOD_BUFFERED, FILE_ANY_ACCESS)
 //应用层关闭进程监控
 #define  IOCTL_PROCESS_UNFILTER (ULONG)CTL_CODE( FILE_DEVICE_UNKNOWN, 0x917,METHOD_BUFFERED, FILE_ANY_ACCESS)
+// 应用层开启驱动监控
+#define  IOCTL_DRIVER_FILTER (ULONG)CTL_CODE( FILE_DEVICE_UNKNOWN, 0x918,METHOD_BUFFERED, FILE_ANY_ACCESS)
+//应用层关闭驱动监控
+#define  IOCTL_DRIVER_UNFILTER (ULONG)CTL_CODE( FILE_DEVICE_UNKNOWN, 0x919,METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 PDEVICE_OBJECT g_pDevObj;//生成的设备对象指针
 KEVENT g_kEvent;	//全局事件对象
@@ -166,6 +170,17 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 		UnLoadProcessRoutine();//关闭进程回调
 
 		Irp->IoStatus.Information = 0;
+		break;
+	//-----------------------------------------------------------------------------------------------------------------------------
+	case IOCTL_DRIVER_FILTER:
+		KdPrint(("IOCTL_DRIVER_FILTER"));
+		Irp->IoStatus.Information = MoudleFilterLoad();//开启进程回调
+		break;
+	//-----------------------------------------------------------------------------------------------------------------------------
+	case IOCTL_DRIVER_UNFILTER:
+		KdPrint(("IOCTL_DRIVER_UNFILTER"));
+
+		Irp->IoStatus.Information = MoudleFilterUnLoad();//开启进程回调
 		break;
 	//-----------------------------------------------------------------------------------------------------------------------------
 	}

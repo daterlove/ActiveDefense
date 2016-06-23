@@ -13,7 +13,7 @@
 #define new DEBUG_NEW
 #endif
 
-#define SOFT_CAPTION L"SML主动防御引擎"
+#define SOFT_CAPTION L"SML主动防御"
 // CActiveDefenseDlg 对话框
 
 extern bool g_isProcessOver;//指示程序是否要退出
@@ -51,6 +51,7 @@ BEGIN_MESSAGE_MAP(CActiveDefenseDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_PROCESS_PROTECT, &CActiveDefenseDlg::OnBnClickedProcessProtect)
 	ON_BN_CLICKED(IDC_LOAD_FILTER, &CActiveDefenseDlg::OnBnClickedLoadFilter)
 	ON_BN_CLICKED(IDC_PROCESS_FILTER, &CActiveDefenseDlg::OnBnClickedProcessFilter)
+	ON_BN_CLICKED(IDC_DRIVER_FILTER, &CActiveDefenseDlg::OnBnClickedDriverFilter)
 END_MESSAGE_MAP()
 
 
@@ -463,5 +464,40 @@ void CActiveDefenseDlg::OnBnClickedProcessFilter()
 			ShowInfoInDlg(L"关闭进程监控失败==\r\n----------------------------------------------");
 		}
 		
+	}
+}
+
+
+void CActiveDefenseDlg::OnBnClickedDriverFilter()
+{
+	CString caption;
+	GetDlgItem(IDC_DRIVER_FILTER)->GetWindowText(caption);//获取按钮名称
+	if (caption == L"开启驱动监控")
+	{
+		int nRet = SendMsgToDriver(IOCTL_DRIVER_FILTER);
+		if (nRet == 0)
+		{
+			ShowInfoInDlg(L"开启驱动监控 成功==\r\n----------------------------------------------");
+			GetDlgItem(IDC_DRIVER_FILTER)->SetWindowText(L"关闭驱动监控");
+		}
+		else
+		{
+			ShowInfoInDlg(L"开启驱动监控 失败==\r\n----------------------------------------------");
+		}
+
+	}
+	else
+	{
+		int nRet = SendMsgToDriver(IOCTL_DRIVER_UNFILTER);
+		if (nRet == 0)
+		{
+			ShowInfoInDlg(L"关闭驱动监控 成功==\r\n----------------------------------------------");
+			GetDlgItem(IDC_DRIVER_FILTER)->SetWindowText(L"开启驱动监控");
+		}
+		else
+		{
+			ShowInfoInDlg(L"关闭驱动监控失败==\r\n----------------------------------------------");
+		}
+
 	}
 }

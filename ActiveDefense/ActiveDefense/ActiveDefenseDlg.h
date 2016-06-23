@@ -57,4 +57,5 @@ public:
 	
 	
 
+	afx_msg void OnBnClickedDriverFilter();
 };
