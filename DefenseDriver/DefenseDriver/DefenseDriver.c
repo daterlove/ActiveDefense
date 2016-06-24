@@ -92,9 +92,7 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 			ExFreePool(pEvent);//释放内存
 		}
 		
-
 		Irp->IoStatus.Information = 0;//写入长度
-		KdPrint(("IOCTL_SEND—Over"));
 		break;
 	//-----------------------------------------------------------------------------------------------------
 	case IOCTL_RECV://应用读取信号
@@ -115,7 +113,7 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 			
 			RtlCopyMemory((PVOID)((char *)buffer+4), &pEvent->nLength, sizeof(int));//拷贝4个字节字符串长度
 			RtlCopyMemory((PVOID)((char *)buffer + 8), pEvent->wStr, pEvent->nLength);//拷贝wchar字符串
-			KdPrint(("nType:%d,nLength:%d", pEvent->nType, pEvent->nLength));
+			//KdPrint(("nType:%d,nLength:%d", pEvent->nType, pEvent->nLength));
 			Irp->IoStatus.Information = 8 + pEvent->nLength;//写入长度
 
 			if (pEvent->nType== 2 )//进程退出事件
@@ -126,12 +124,11 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 		}
 		else
 		{
-			KdPrint(("g_Close_Flag非0，关闭信号"));
+			KdPrint(("关闭信号"));
 			Irp->IoStatus.Information = 0;//写入长度为0
 			g_Close_Flag = 0;//重新设置为0 ,下次应用读取会阻塞
 		}
 
-		KdPrint(("IOCTL_RECV结束"));
 		break;
 	//-----------------------------------------------------------------------------------------------------
 	case IOCTL_CLOSE:
@@ -150,10 +147,8 @@ NTSTATUS MyDeviceControl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)//Control分
 	//-----------------------------------------------------------------------------------------------------------------------------
 	case	IOCTL_PROCESS_UNPROTECT:
 		KdPrint(("IOCTL_PROCESS_UNPROTECT"));
-		
 		Irp->IoStatus.Information = UnloadProcessProtect();//关闭进程保护
 
-		KdPrint(("IOCTL_PROCESS_UNPROTECT Over"));
 		break;
 	//-----------------------------------------------------------------------------------------------------------------------------
 	case IOCTL_PROCESS_FILTER:
@@ -249,8 +244,6 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath
 	pDriverObject->MajorFunction[IRP_MJ_CLOSE] = MyClose;
 	pDriverObject->MajorFunction[IRP_MJ_CLEANUP] = MyClose;
 
-	
-	
 	return STATUS_SUCCESS;
 }
 

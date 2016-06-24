@@ -52,6 +52,7 @@ BEGIN_MESSAGE_MAP(CActiveDefenseDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_LOAD_FILTER, &CActiveDefenseDlg::OnBnClickedLoadFilter)
 	ON_BN_CLICKED(IDC_PROCESS_FILTER, &CActiveDefenseDlg::OnBnClickedProcessFilter)
 	ON_BN_CLICKED(IDC_DRIVER_FILTER, &CActiveDefenseDlg::OnBnClickedDriverFilter)
+	ON_BN_CLICKED(IDC_HELP, &CActiveDefenseDlg::OnBnClickedHelp)
 END_MESSAGE_MAP()
 
 
@@ -221,7 +222,7 @@ void StartThread()
 	else
 	{
 		ShowInfoInDlg (L"只允许开启一个监控线程");
-	}/**/
+	}
 	
 }
 
@@ -237,14 +238,12 @@ void CActiveDefenseDlg::OnBnClickedLoadDrv()
 		return;
 	}
 		
-
 	bRet = operaType(szFullPath, szTitle, 1);
 	if (!bRet)
 	{
 		return;
 	}
 
-	
 	//开启线程
 	StartThread();
 }
@@ -259,7 +258,7 @@ int SendDrvClose()//发送给设备CLOSE信号，激活线程，防止线程阻塞在内核层
 	device = CreateFile(CWK_DEV_SYM, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM, 0);
 	if (device == INVALID_HANDLE_VALUE)
 	{
-		ShowInfoInDlg(L"主线程：设备打开错误，线程退出");
+		ShowInfoInDlg(L"主线程：设备打开错误，线程退出\r\n----------------------------------------------");
 		return -1;
 	}
 	if (!DeviceIoControl(device, CTL_CODE_GEN(0x913), NULL, NULL, NULL, 0, &ret_len, 0))//发送
@@ -279,6 +278,7 @@ void CActiveDefenseDlg::OnBnClickedUnloadDrv()
 	
 	operaType(szFullPath, szTitle, 2);
 	//operaType(szFullPath, szTitle, 3);
+	StopDriver(L"FsFilter");
 }
 
 
@@ -322,7 +322,7 @@ int StartProcessProtect()//向驱动发送消息开启进程保护
 	device = CreateFile(CWK_DEV_SYM, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM, 0);
 	if (device == INVALID_HANDLE_VALUE)
 	{
-		ShowInfoInDlg(L"主线程：设备打开错误");
+		ShowInfoInDlg(L"主线程：设备打开错误\r\n----------------------------------------------");
 		return -1;
 	}
 	if (!DeviceIoControl(device, CTL_CODE_GEN(0x914), Buffer, sizeof(Buffer), NULL, 0, &ret_len, 0))//发送
@@ -364,7 +364,7 @@ void CActiveDefenseDlg::OnBnClickedProcessProtect()
 
 }
 
-void CreateProtectFilte()
+void CreateProtectFile()
 {
 	DeleteFile(L"README.TXT");
 	CFile file;
@@ -383,7 +383,7 @@ void CActiveDefenseDlg::OnBnClickedLoadFilter()
 	GetDlgItem(IDC_LOAD_FILTER)->GetWindowText(caption);//获取按钮名称
 	if (caption == L"开启文件保护")
 	{
-		CreateProtectFilte();
+		CreateProtectFile();
 		CFileFind fFind;
 		if (fFind.FindFile(L"FsFilter.sys"))
 		{
@@ -500,4 +500,16 @@ void CActiveDefenseDlg::OnBnClickedDriverFilter()
 		}
 
 	}
+}
+
+
+void CActiveDefenseDlg::OnBnClickedHelp()
+{
+	CString temp;
+	temp = "1.驱动在Win7 64位下调试通过，并未进行签名，如果加载失败请进入 禁用强制驱动程序签名 模式，再重新打开程序。\n";
+	temp += "2.进程监控是通过注册回调函数来监控进程的行为。\n";
+	temp += "3.进程保护采用DKOM方式操作EPROCESS修改FLAGS标志位实现进程保护。\n";
+	temp += "4.使用MiniFilter框架过滤文件，实现文件保护。\n";
+	temp += "5.通过设置映像加载通告例程，实现驱动加载的监控。\n";
+	MessageBox(temp, L"软件说明", 0);
 }

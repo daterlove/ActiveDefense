@@ -149,7 +149,7 @@ __deref_out_opt PVOID *CompletionContext
 {
 	UNREFERENCED_PARAMETER(FltObjects);
 	UNREFERENCED_PARAMETER(CompletionContext);
-	DbgPrint("Write");
+
 PAGED_CODE();
 	{
 		PFLT_FILE_NAME_INFORMATION nameInfo;
@@ -166,7 +166,7 @@ PAGED_CODE();
 					pTemp = pNonPageBuf;
 				}
 				RtlCopyMemory(pTemp, nameInfo->Name.Buffer, nameInfo->Name.MaximumLength);
-				DbgPrint("[MiniFilter][IRP_MJ_WRITE]%wZ", &nameInfo->Name);
+				DbgPrint("[WRITE]%wZ", &nameInfo->Name);
 				_wcsupr(pTemp);
 				if (NULL != wcsstr(pTemp, L"README.TXT"))  // 检查是不是要保护的文件
 				{
@@ -224,7 +224,7 @@ __deref_out_opt PVOID *CompletionContext
 					pTemp = pNonPageBuf;
 				}
 				RtlCopyMemory(pTemp, nameInfo->Name.Buffer, nameInfo->Name.MaximumLength);
-				DbgPrint("[MiniFilter][IRP_MJ_SET_INFORMATION]%wZ", &nameInfo->Name);
+				DbgPrint("[SET_INFORMATION]%wZ", &nameInfo->Name);
 				_wcsupr(pTemp);
 				if (NULL != wcsstr(pTemp, L"README.TXT"))  // 检查是不是要保护的文件
 				{
